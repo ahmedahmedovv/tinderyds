@@ -640,12 +640,24 @@
 
         // Cache for word definitions
         const wordCache = {};
+        const prefetchQueue = new Set();
 
         // Fetch word data from Mistral AI
         async function fetchWordData(word) {
             if (wordCache[word]) {
                 return wordCache[word];
             }
+
+            // Mark as being fetched to prevent duplicate requests
+            if (prefetchQueue.has(word)) {
+                // Wait for the existing request to complete
+                while (!wordCache[word]) {
+                    await new Promise(r => setTimeout(r, 50));
+                }
+                return wordCache[word];
+            }
+
+            prefetchQueue.add(word);
 
             try {
                 const response = await fetch(MISTRAL_API_URL, {
@@ -663,7 +675,7 @@
                             },
                             {
                                 role: 'user',
-                                content: `Provide a definition and example sentence for "${word}". Format as JSON: {"definition": "...", "example": "..."}`
+                                content: `Provide an academic-level definition and a sophisticated, academic-style example sentence for "${word}". The example should demonstrate proper academic usage. Format as JSON: {"definition": "...", "example": "..."}`
                             }
                         ],
                         temperature: 0.3,
@@ -687,13 +699,32 @@
                 }
             } catch (error) {
                 console.error('Error fetching word data:', error);
+            } finally {
+                prefetchQueue.delete(word);
             }
 
             // Fallback data
-            return {
+            const fallback = {
                 definition: `A word or phrase expressing ${word.toLowerCase()}.`,
                 example: `The teacher asked us to use "${word}" in a sentence.`
             };
+            wordCache[word] = fallback;
+            return fallback;
+        }
+
+        // Prefetch next N cards in the background
+        function prefetchUpcomingCards() {
+            const prefetchCount = 3; // Prefetch next 3 cards
+            for (let i = 1; i <= prefetchCount; i++) {
+                const nextIndex = currentIndex + i;
+                if (nextIndex < currentCards.length) {
+                    const nextWord = currentCards[nextIndex];
+                    if (!wordCache[nextWord] && !prefetchQueue.has(nextWord)) {
+                        // Fetch in background without awaiting
+                        fetchWordData(nextWord).catch(() => {});
+                    }
+                }
+            }
         }
 
         // App State
@@ -735,12 +766,15 @@
             currentCards = sessionWords;
             currentIndex = 0;
 
-            // Pre-fetch next few cards
+            // Pre-fetch first few cards
             for (let i = 0; i < Math.min(3, sessionWords.length); i++) {
                 fetchWordData(sessionWords[i]);
             }
 
-            renderCard();
+            await renderCard();
+            
+            // Start prefetching upcoming cards immediately
+            prefetchUpcomingCards();
         }
 
         async function renderCard() {
@@ -762,7 +796,7 @@
                     <div class="word">${word}</div>
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>Loading definition...</p>
+                        <p>Loading...</p>
                     </div>
                 </div>
             `;
@@ -781,10 +815,10 @@
                     <div class="card-badge know" id="badgeKnow">KNOW IT</div>
                     <div class="word">${word}</div>
                     <div class="divider"></div>
-                    <div class="section-title">Definition</div>
-                    <div class="definition">${data.definition}</div>
                     <div class="section-title">Example</div>
                     <div class="example">"${data.example}"</div>
+                    <div class="section-title">Definition</div>
+                    <div class="definition">${data.definition}</div>
                     <div class="swipe-hint">
                         <span>← Don't Know</span>
                         <span>•</span>
@@ -793,10 +827,8 @@
                 `;
             }
 
-            // Pre-fetch next card
-            if (currentIndex + 1 < currentCards.length) {
-                fetchWordData(currentCards[currentIndex + 1]);
-            }
+            // Pre-fetch upcoming cards
+            prefetchUpcomingCards();
         }
 
         function enableSwipe() {
