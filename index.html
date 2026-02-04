@@ -1199,7 +1199,7 @@
             <div class="modal-body">
                 <section class="info-section">
                     <h3>🎯 How to Use</h3>
-                    <p class="info-text">Swipe through flashcards to review vocabulary. Each card shows two connected example sentences using academic linking words (furthermore, however, therefore, etc.).</p>
+                    <p class="info-text">Swipe through flashcards to review vocabulary. Each card shows two connected example sentences using academic linking words (furthermore, however, therefore, consequently, etc.).</p>
                     <div class="swipe-demo">
                         <div class="swipe-item">
                             <span class="swipe-icon">←</span>
@@ -1267,10 +1267,26 @@
                         <li>Both "Know" and "Don't Know" count toward daily goal</li>
                         <li>Be honest - mark "Don't Know" if you're unsure</li>
                         <li>Read example sentences aloud for better retention</li>
-                        <li>Notice linking words (furthermore, however, therefore) connecting ideas</li>
+                        <li>Study linking words to improve academic writing skills</li>
                         <li>Try to use new words in your own sentences</li>
                         <li>Check Word List to see all your progress</li>
                     </ul>
+                </section>
+
+                <section class="info-section">
+                    <h3>🔗 Academic Linking Words</h3>
+                    <p class="info-text">Example sentences use academic linking words to connect ideas. These words are essential for academic writing and coherence.</p>
+                    
+                    <div class="levels-table two-columns">
+                        <div class="level-row level-header">
+                            <span>Category</span>
+                            <span>Examples</span>
+                        </div>
+                        <div class="level-row"><span>Addition</span><span>furthermore, moreover</span></div>
+                        <div class="level-row"><span>Contrast</span><span>however, nevertheless</span></div>
+                        <div class="level-row"><span>Cause/Effect</span><span>therefore, consequently</span></div>
+                        <div class="level-row"><span>Sequence</span><span>subsequently, initially</span></div>
+                    </div>
                 </section>
 
                 <section class="info-section">
@@ -1330,6 +1346,7 @@
         </button>
     </div>
 
+    <script src="linkingwords.js"></script>
     <script>
         // Word list from mywords.js
         const MYWORDS = [
@@ -1759,11 +1776,11 @@
                             },
                             {
                                 role: 'user',
-                                content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and TWO connected academic example sentences (max 35 words total) that USE "${word}". 
+                                content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and TWO connected academic example sentences (max 35 words total) that USE "${word}".
 
-Use appropriate linking words from this list to connect the two sentences: furthermore, moreover, however, therefore, consequently, as a result, thus, nevertheless, in contrast, similarly, likewise, subsequently, eventually, for example, specifically, notably, indeed, particularly, although, despite, whereas, while, initially, finally, in addition, additionally.
+The example sentences must use appropriate academic linking words: ${getLinkingWordsPrompt()}.
 
-The example should flow naturally with the linking word connecting two related ideas. Format as JSON: {"definition": "...", "example": "..."}`
+Connect the two sentences naturally with a linking word to show logical relationships between ideas. Format as JSON: {"definition": "...", "example": "..."}`
                             }
                         ],
                         temperature: 0.3,
