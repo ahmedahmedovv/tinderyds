@@ -1778,13 +1778,20 @@
                                 role: 'user',
                                 content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and TWO connected academic example sentences (max 35 words total) that USE "${word}".
 
-IMPORTANT - Use this SPECIFIC linking word to connect the two sentences: "${suggestLinkingWord()}".
+LINKING WORD ASSIGNMENT: Use "${suggestLinkingWord()}" to connect your two sentences.
 
-Alternative options if the above doesn't fit: "${suggestLinkingWord()}" or "${suggestLinkingWord()}".
+CRITICAL INSTRUCTION: Analyze the MEANING of "${word}" and the LOGICAL FUNCTION of the assigned linking word together. Create sentences where:
+1. The linking word creates a NATURAL logical connection based on the vocabulary word's meaning
+2. If the linking word shows CONTRAST (however, nevertheless) - show opposition related to the word
+3. If the linking word shows ADDITION (furthermore, moreover) - add supporting information
+4. If the linking word shows CAUSE/EFFECT (therefore, consequently) - show results or consequences
+5. If the linking word shows SEQUENCE (subsequently, eventually) - show time progression
 
-Available linking words by category: ${getLinkingWordsPrompt()}.
+The two sentences must be COHERENT and the linking word must make logical sense with "${word}".
 
-The two sentences must form a coherent mini-paragraph with the linking word naturally connecting the ideas. Format as JSON: {"definition": "...", "example": "..."}`
+Available linking categories: ${getLinkingWordsPrompt()}.
+
+Format as JSON: {"definition": "...", "example": "..."}`
                             }
                         ],
                         temperature: 0.3,
