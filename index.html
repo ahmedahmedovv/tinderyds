@@ -408,6 +408,91 @@
             transition: width 0.3s ease;
         }
 
+        .daily-progress {
+            width: 92%;
+            max-width: 420px;
+            margin: 0.5vh auto 1vh;
+            display: flex;
+            align-items: center;
+            gap: 2vw;
+        }
+
+        .daily-progress-bar {
+            flex: 1;
+            height: 0.8vh;
+            min-height: 5px;
+            max-height: 10px;
+            background: rgba(139, 115, 85, 0.2);
+            border-radius: 1vh;
+            overflow: hidden;
+        }
+
+        .daily-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e67e22, #f39c12);
+            border-radius: 1vh;
+            transition: width 0.5s ease;
+        }
+
+        .daily-progress-fill.complete {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+
+        .daily-progress-text {
+            font-size: clamp(10px, 2.8vw, 12px);
+            color: #8b7355;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .streak-notification {
+            position: fixed;
+            top: 10vh;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #fdf6e3;
+            border: 2px solid #e67e22;
+            border-radius: 2vw;
+            padding: 2vh 4vw;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .streak-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .streak-notification-content {
+            display: flex;
+            align-items: center;
+            gap: 3vw;
+        }
+
+        .streak-fire {
+            font-size: clamp(24px, 6vw, 32px);
+            animation: firePulse 0.5s ease infinite alternate;
+        }
+
+        @keyframes firePulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        .streak-title {
+            font-size: clamp(14px, 4vw, 16px);
+            font-weight: 700;
+            color: #e67e22;
+        }
+
+        .streak-subtitle {
+            font-size: clamp(11px, 3vw, 13px);
+            color: #8b7355;
+        }
+
         .level-indicator {
             position: absolute;
             top: 1.5vh;
@@ -570,6 +655,10 @@
             font-size: clamp(11px, 3vw, 12px);
             color: #6b5a48;
             border-bottom: 1px solid #e8dcc8;
+        }
+
+        .levels-table.two-columns .level-row {
+            grid-template-columns: 1fr 1fr;
         }
 
         .level-row:last-child {
@@ -996,6 +1085,18 @@
                 padding: 10px 22px;
                 border-width: 3px;
             }
+
+            .daily-progress {
+                margin: 0.5vh auto 1vh;
+            }
+
+            .daily-progress-bar {
+                height: 6px;
+            }
+
+            .daily-progress-text {
+                font-size: 10px;
+            }
         }
     </style>
 </head>
@@ -1117,6 +1218,30 @@
                 </section>
 
                 <section class="info-section">
+                    <h3>🔥 Daily Streak</h3>
+                    <p class="info-text">Review at least 10 words every day to build your streak. Miss a day and your streak resets to zero!</p>
+                    
+                    <div class="levels-table two-columns">
+                        <div class="level-row level-header">
+                            <span>Words</span>
+                            <span>Result</span>
+                        </div>
+                        <div class="level-row">
+                            <span>10+ words</span>
+                            <span style="color: #27ae60;">✓ Streak +1</span>
+                        </div>
+                        <div class="level-row">
+                            <span>0-9 words</span>
+                            <span style="color: #c0392b;">✗ Streak breaks</span>
+                        </div>
+                        <div class="level-row">
+                            <span>Miss a day</span>
+                            <span style="color: #c0392b;">✗ Streak resets</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="info-section">
                     <h3>🧠 Spaced Repetition</h3>
                     <p class="info-text">This app uses a scientifically proven method to maximize long-term memory retention. Words you know appear less frequently; words you struggle with appear more often.</p>
                     
@@ -1137,7 +1262,7 @@
                 <section class="info-section">
                     <h3>💡 Tips for Success</h3>
                     <ul class="tips-list">
-                        <li>Review daily to maintain your streak 🔥</li>
+                        <li>Review at least 10 words daily to maintain your streak 🔥</li>
                         <li>Be honest - mark "Don't Know" if you're unsure</li>
                         <li>Read the example sentence aloud</li>
                         <li>Try to use the word in your own sentence</li>
@@ -1158,7 +1283,7 @@
                         </div>
                         <div class="stat-explained">
                             <strong>🔥 Streak</strong>
-                            <p>Consecutive days you've reviewed</p>
+                            <p>Consecutive days you've reviewed 10+ words</p>
                         </div>
                     </div>
                 </section>
@@ -1172,6 +1297,13 @@
 
     <div class="progress-bar">
         <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <div class="daily-progress">
+        <div class="daily-progress-bar">
+            <div class="daily-progress-fill" id="dailyProgressFill" style="width: 0%"></div>
+        </div>
+        <span class="daily-progress-text" id="dailyProgressText">0/10 words today</span>
     </div>
 
     <div class="card-container" id="cardContainer">
@@ -1406,6 +1538,103 @@
         const MISTRAL_API_KEY = 'UyFZtjZY3r5aNe1th2qtx6IBLynCc0ai';
         const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
+        // Daily Streak Manager
+        class StreakManager {
+            constructor() {
+                this.loadData();
+            }
+
+            loadData() {
+                const saved = localStorage.getItem('streakData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.streak = data.streak || 0;
+                    this.lastReviewDate = data.lastReviewDate || null;
+                    this.wordsReviewedToday = data.wordsReviewedToday || 0;
+                    this.lastDate = data.lastDate || null;
+                } else {
+                    this.streak = 0;
+                    this.lastReviewDate = null;
+                    this.wordsReviewedToday = 0;
+                    this.lastDate = null;
+                }
+            }
+
+            saveData() {
+                localStorage.setItem('streakData', JSON.stringify({
+                    streak: this.streak,
+                    lastReviewDate: this.lastReviewDate,
+                    wordsReviewedToday: this.wordsReviewedToday,
+                    lastDate: this.lastDate
+                }));
+            }
+
+            getTodayKey() {
+                return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            }
+
+            isNewDay() {
+                const today = this.getTodayKey();
+                return this.lastDate !== today;
+            }
+
+            checkAndResetForNewDay() {
+                if (this.isNewDay()) {
+                    // Check if yesterday's goal was met
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayKey = yesterday.toISOString().split('T')[0];
+
+                    // If last review was not yesterday and not today, streak breaks
+                    if (this.lastDate && this.lastDate !== yesterdayKey && this.lastDate !== this.getTodayKey()) {
+                        // Missed a day - reset streak
+                        this.streak = 0;
+                    }
+
+                    // Reset daily counter
+                    this.wordsReviewedToday = 0;
+                    this.lastDate = this.getTodayKey();
+                    this.saveData();
+                }
+            }
+
+            recordWordReviewed() {
+                this.checkAndResetForNewDay();
+                
+                const wasGoalMet = this.isDailyGoalMet();
+                this.wordsReviewedToday++;
+                
+                // If this is the 10th word and goal wasn't met before, increment streak
+                if (this.wordsReviewedToday >= 10 && !wasGoalMet) {
+                    this.streak++;
+                    this.lastReviewDate = this.getTodayKey();
+                }
+                
+                this.saveData();
+                return this.getStatus();
+            }
+
+            isDailyGoalMet() {
+                this.checkAndResetForNewDay();
+                return this.wordsReviewedToday >= 10;
+            }
+
+            getStatus() {
+                this.checkAndResetForNewDay();
+                return {
+                    streak: this.streak,
+                    wordsReviewedToday: this.wordsReviewedToday,
+                    dailyGoal: 10,
+                    remaining: Math.max(0, 10 - this.wordsReviewedToday),
+                    isGoalMet: this.isDailyGoalMet()
+                };
+            }
+
+            getProgressPercent() {
+                return Math.min((this.wordsReviewedToday / 10) * 100, 100);
+            }
+        }
+
         // Spaced Repetition Algorithm
         class SpacedRepetition {
             constructor() {
@@ -1577,22 +1806,26 @@
 
         // App State
         const sr = new SpacedRepetition();
+        const streakManager = new StreakManager();
         let currentCards = [];
         let currentIndex = 0;
-        let streak = 0;
         let isProcessing = false;
 
         // Initialize
         async function init() {
+            // Check streak status on app open
+            streakManager.checkAndResetForNewDay();
             updateStats();
+            updateDailyProgress();
             await loadCards();
         }
 
         function updateStats() {
             const stats = sr.getStats();
+            const streakStatus = streakManager.getStatus();
             document.getElementById('toReviewCount').textContent = stats.toReview;
             document.getElementById('learnedCount').textContent = stats.learned;
-            document.getElementById('streakCount').textContent = streak;
+            document.getElementById('streakCount').textContent = streakStatus.streak;
             
             const progress = ((MYWORDS.length - stats.toReview) / MYWORDS.length) * 100;
             document.getElementById('progressFill').style.width = `${progress}%`;
@@ -1781,7 +2014,14 @@
 
             const word = currentCards[currentIndex];
             sr.processResult(word, true);
-            streak++;
+            
+            // Record for daily streak
+            const streakStatus = streakManager.recordWordReviewed();
+            
+            // Show streak notification if goal just met
+            if (streakStatus.wordsReviewedToday === 10) {
+                showStreakCelebration(streakStatus.streak);
+            }
             
             const card = document.getElementById('currentCard');
             if (card) {
@@ -1791,6 +2031,7 @@
             setTimeout(() => {
                 currentIndex++;
                 updateStats();
+                updateDailyProgress();
                 renderCard();
                 isProcessing = false;
             }, 300);
@@ -1802,7 +2043,14 @@
 
             const word = currentCards[currentIndex];
             sr.processResult(word, false);
-            streak = 0;
+            
+            // Still counts toward daily goal (reviewed word)
+            const streakStatus = streakManager.recordWordReviewed();
+            
+            // Show streak notification if goal just met
+            if (streakStatus.wordsReviewedToday === 10) {
+                showStreakCelebration(streakStatus.streak);
+            }
             
             const card = document.getElementById('currentCard');
             if (card) {
@@ -1812,9 +2060,49 @@
             setTimeout(() => {
                 currentIndex++;
                 updateStats();
+                updateDailyProgress();
                 renderCard();
                 isProcessing = false;
             }, 300);
+        }
+
+        function updateDailyProgress() {
+            const status = streakManager.getStatus();
+            const progressBar = document.getElementById('dailyProgressFill');
+            const progressText = document.getElementById('dailyProgressText');
+            
+            if (progressBar) {
+                progressBar.style.width = streakManager.getProgressPercent() + '%';
+            }
+            if (progressText) {
+                if (status.isGoalMet) {
+                    progressText.textContent = `🔥 ${status.streak} day streak!`;
+                } else {
+                    progressText.textContent = `${status.wordsReviewedToday}/10 words today`;
+                }
+            }
+        }
+
+        function showStreakCelebration(streakDays) {
+            // Create celebration notification
+            const notification = document.createElement('div');
+            notification.className = 'streak-notification';
+            notification.innerHTML = `
+                <div class="streak-notification-content">
+                    <span class="streak-fire">🔥</span>
+                    <div>
+                        <div class="streak-title">Daily Goal Met!</div>
+                        <div class="streak-subtitle">${streakDays} day streak</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
 
         function showEmptyState() {
@@ -1847,6 +2135,7 @@
         function resetProgress() {
             if (confirm('Reset all progress? This cannot be undone.')) {
                 localStorage.removeItem('wordProgress');
+                localStorage.removeItem('streakData');
                 location.reload();
             }
         }
