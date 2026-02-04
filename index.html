@@ -97,35 +97,37 @@
 
         .card-badge {
             position: absolute;
-            top: 25px;
-            padding: 6px 12px;
+            top: 50%;
+            transform: translateY(-50%) scale(0.8);
+            padding: 8px 20px;
             border: 3px solid;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 24px;
             font-weight: bold;
             text-transform: uppercase;
             opacity: 0;
-            transform: scale(0.8);
             transition: opacity 0.15s, transform 0.15s;
+            z-index: 10;
+            background: rgba(255,255,255,0.95);
         }
 
         .card-badge.know {
-            right: 20px;
+            right: 30px;
             color: #4CAF50;
             border-color: #4CAF50;
-            transform: rotate(15deg);
+            --rotation: 15deg;
         }
 
         .card-badge.dont-know {
-            left: 20px;
+            left: 30px;
             color: #f44336;
             border-color: #f44336;
-            transform: rotate(-15deg);
+            --rotation: -15deg;
         }
 
         .card-badge.show {
             opacity: 1;
-            transform: scale(1) rotate(var(--rotation, 0deg));
+            transform: translateY(-50%) scale(1) rotate(var(--rotation, 0deg));
         }
 
         .word {
@@ -403,6 +405,19 @@
                 width: 52px;
                 height: 52px;
                 font-size: 22px;
+            }
+            
+            .card-badge {
+                font-size: 18px;
+                padding: 6px 14px;
+            }
+            
+            .card-badge.know {
+                right: 20px;
+            }
+            
+            .card-badge.dont-know {
+                left: 20px;
             }
         }
     </style>
@@ -954,23 +969,29 @@
                 const touch = e.type.includes('mouse') ? e : e.touches[0];
                 currentX = touch.clientX;
                 const deltaX = currentX - startX;
-                const rotation = deltaX * 0.04;
+                const rotation = deltaX * 0.05;
                 
                 card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
 
-                // Show badge based on swipe direction
+                // Show badge based on swipe direction with opacity based on distance
                 const badgeKnow = document.getElementById('badgeKnow');
                 const badgeDontKnow = document.getElementById('badgeDontKnow');
                 
-                if (deltaX > 40) {
-                    badgeKnow.classList.add('show');
+                if (deltaX > 30) {
+                    const intensity = Math.min((deltaX - 30) / 70, 1);
+                    badgeKnow.style.opacity = intensity;
+                    badgeKnow.style.transform = `translateY(-50%) scale(${0.8 + intensity * 0.2}) rotate(15deg)`;
                     badgeDontKnow.classList.remove('show');
-                } else if (deltaX < -40) {
-                    badgeDontKnow.classList.add('show');
+                } else if (deltaX < -30) {
+                    const intensity = Math.min((Math.abs(deltaX) - 30) / 70, 1);
+                    badgeDontKnow.style.opacity = intensity;
+                    badgeDontKnow.style.transform = `translateY(-50%) scale(${0.8 + intensity * 0.2}) rotate(-15deg)`;
                     badgeKnow.classList.remove('show');
                 } else {
                     badgeKnow.classList.remove('show');
+                    badgeKnow.style.opacity = 0;
                     badgeDontKnow.classList.remove('show');
+                    badgeDontKnow.style.opacity = 0;
                 }
             };
 
@@ -989,8 +1010,16 @@
                     setTimeout(() => handleDontKnow(), 250);
                 } else {
                     card.style.transform = '';
-                    document.getElementById('badgeKnow')?.classList.remove('show');
-                    document.getElementById('badgeDontKnow')?.classList.remove('show');
+                    const badgeKnow = document.getElementById('badgeKnow');
+                    const badgeDontKnow = document.getElementById('badgeDontKnow');
+                    if (badgeKnow) {
+                        badgeKnow.classList.remove('show');
+                        badgeKnow.style.opacity = 0;
+                    }
+                    if (badgeDontKnow) {
+                        badgeDontKnow.classList.remove('show');
+                        badgeDontKnow.style.opacity = 0;
+                    }
                 }
             };
 
