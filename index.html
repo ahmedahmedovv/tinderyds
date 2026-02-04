@@ -32,7 +32,7 @@
 
         .header {
             color: white;
-            padding: 12px 15px;
+            padding: 8px 12px;
             text-align: center;
         }
 
@@ -59,8 +59,8 @@
             position: relative;
             width: 92%;
             max-width: 360px;
-            height: 420px;
-            margin: 8px auto;
+            height: 390px;
+            margin: 6px auto;
             perspective: 1000px;
         }
 
@@ -129,11 +129,11 @@
         }
 
         .word {
-            font-size: 26px;
+            font-size: 25px;
             font-weight: bold;
             color: #333;
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             margin-top: 2px;
             flex-shrink: 0;
         }
@@ -141,7 +141,7 @@
         .divider {
             height: 1px;
             background: linear-gradient(90deg, transparent, #667eea, transparent);
-            margin: 4px 0 8px 0;
+            margin: 3px 0 6px 0;
             flex-shrink: 0;
         }
 
@@ -157,7 +157,7 @@
         .definition {
             font-size: 14px;
             color: #555;
-            line-height: 1.45;
+            line-height: 1.4;
             text-align: justify;
             flex-shrink: 0;
         }
@@ -166,11 +166,11 @@
             font-size: 14px;
             color: #667eea;
             font-style: italic;
-            line-height: 1.45;
+            line-height: 1.4;
             text-align: justify;
-            padding: 10px 12px;
+            padding: 8px 10px;
             background: #f8f9ff;
-            border-radius: 8px;
+            border-radius: 7px;
             border-left: 3px solid #667eea;
             flex-shrink: 0;
         }
@@ -212,21 +212,21 @@
 
         .controls {
             display: flex;
-            gap: 50px;
-            margin-top: 12px;
-            margin-bottom: calc(20px + env(safe-area-inset-bottom));
+            gap: 45px;
+            margin-top: 8px;
+            margin-bottom: calc(10px + env(safe-area-inset-bottom));
         }
 
         .btn {
-            width: 60px;
-            height: 60px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 24px;
             transition: transform 0.15s, box-shadow 0.15s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
@@ -288,7 +288,7 @@
             height: 4px;
             background: rgba(255,255,255,0.3);
             border-radius: 2px;
-            margin: 8px auto;
+            margin: 6px auto;
             overflow: hidden;
         }
 
@@ -312,12 +312,12 @@
 
         .swipe-hint {
             color: #aaa;
-            font-size: 12px;
+            font-size: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding-top: 10px;
+            gap: 6px;
+            padding-top: 6px;
             flex-shrink: 0;
         }
 
@@ -330,71 +330,79 @@
         /* iPhone 13 Mini Optimizations (375x812) */
         @media (max-width: 380px) and (max-height: 815px) {
             .header {
-                padding: 10px 12px;
+                padding: 6px 10px;
             }
             
             .header h1 {
-                font-size: 22px;
+                font-size: 20px;
+                margin-bottom: 2px;
+            }
+            
+            .header p {
+                font-size: 12px;
             }
             
             .stats {
-                gap: 15px;
-                font-size: 13px;
+                gap: 12px;
+                font-size: 12px;
+                margin-top: 4px;
             }
             
             .card-container {
-                height: 420px;
+                height: 360px;
+                margin: 4px auto;
             }
             
             .card {
-                padding: 16px;
-                border-radius: 16px;
+                padding: 14px;
+                border-radius: 14px;
             }
             
             .word {
-                font-size: 24px;
-                margin-top: 2px;
-                margin-bottom: 6px;
+                font-size: 22px;
+                margin-top: 0;
+                margin-bottom: 4px;
             }
             
             .divider {
-                margin: 4px 0 8px 0;
+                margin: 3px 0 6px 0;
             }
             
             .section-title {
-                font-size: 10px;
-                margin-bottom: 3px;
+                font-size: 9px;
+                margin-bottom: 2px;
             }
             
             .example {
-                font-size: 14px;
-                padding: 10px 12px;
-                border-left-width: 3px;
+                font-size: 13px;
+                padding: 8px 10px;
+                line-height: 1.35;
             }
             
             .definition {
-                font-size: 14px;
-                line-height: 1.45;
+                font-size: 13px;
+                line-height: 1.35;
             }
             
             .content-scroll {
-                gap: 12px;
+                gap: 8px;
             }
             
             .swipe-hint {
-                font-size: 11px;
-                padding-top: 8px;
+                font-size: 10px;
+                padding-top: 6px;
             }
             
             .controls {
-                gap: 50px;
-                margin-top: 12px;
+                gap: 40px;
+                margin-top: 6px;
+                margin-bottom: calc(8px + env(safe-area-inset-bottom));
             }
             
             .btn {
-                width: 58px;
-                height: 58px;
-                font-size: 24px;
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
             }
         }
     </style>
