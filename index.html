@@ -1199,7 +1199,7 @@
             <div class="modal-body">
                 <section class="info-section">
                     <h3>🎯 How to Use</h3>
-                    <p class="info-text">Swipe through flashcards to review vocabulary. Both "Know" and "Don't Know" count toward your daily goal!</p>
+                    <p class="info-text">Swipe through flashcards to review vocabulary. Each card shows two connected example sentences using academic linking words (furthermore, however, therefore, etc.).</p>
                     <div class="swipe-demo">
                         <div class="swipe-item">
                             <span class="swipe-icon">←</span>
@@ -1267,6 +1267,7 @@
                         <li>Both "Know" and "Don't Know" count toward daily goal</li>
                         <li>Be honest - mark "Don't Know" if you're unsure</li>
                         <li>Read example sentences aloud for better retention</li>
+                        <li>Notice linking words (furthermore, however, therefore) connecting ideas</li>
                         <li>Try to use new words in your own sentences</li>
                         <li>Check Word List to see all your progress</li>
                     </ul>
@@ -1758,7 +1759,11 @@
                             },
                             {
                                 role: 'user',
-                                content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and a short academic example sentence (max 25 words) that USES "${word}". Be concise. Format as JSON: {"definition": "...", "example": "..."}`
+                                content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and TWO connected academic example sentences (max 35 words total) that USE "${word}". 
+
+Use appropriate linking words from this list to connect the two sentences: furthermore, moreover, however, therefore, consequently, as a result, thus, nevertheless, in contrast, similarly, likewise, subsequently, eventually, for example, specifically, notably, indeed, particularly, although, despite, whereas, while, initially, finally, in addition, additionally.
+
+The example should flow naturally with the linking word connecting two related ideas. Format as JSON: {"definition": "...", "example": "..."}`
                             }
                         ],
                         temperature: 0.3,
