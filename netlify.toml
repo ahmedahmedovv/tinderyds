@@ -1,0 +1,12 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/mistral"
+  to = "/.netlify/functions/mistral-proxy"
+  status = 200
+
+[dev]
+  functions = "netlify/functions"
+  targetPort = 3000
+  port = 8888

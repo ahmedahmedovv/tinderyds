@@ -1559,8 +1559,8 @@
         ];
 
         // Mistral AI API Configuration
-        const MISTRAL_API_KEY = 'UyFZtjZY3r5aNe1th2qtx6IBLynCc0ai';
-        const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
+        // API key is now securely stored in Netlify Environment Variables
+        const MISTRAL_API_URL = '/api/mistral';
 
         // Daily Streak Manager
         class StreakManager {
@@ -1764,38 +1764,12 @@
                 const response = await fetch(MISTRAL_API_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${MISTRAL_API_KEY}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'mistral-large-latest',
-                        messages: [
-                            {
-                                role: 'system',
-                                content: 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.'
-                            },
-                            {
-                                role: 'user',
-                                content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and TWO connected academic example sentences (max 35 words total) that USE "${word}".
-
-LINKING WORD ASSIGNMENT: Use "${suggestLinkingWord()}" to connect your two sentences.
-
-CRITICAL INSTRUCTION: Analyze the MEANING of "${word}" and the LOGICAL FUNCTION of the assigned linking word together. Create sentences where:
-1. The linking word creates a NATURAL logical connection based on the vocabulary word's meaning
-2. If the linking word shows CONTRAST (however, nevertheless) - show opposition related to the word
-3. If the linking word shows ADDITION (furthermore, moreover) - add supporting information
-4. If the linking word shows CAUSE/EFFECT (therefore, consequently) - show results or consequences
-5. If the linking word shows SEQUENCE (subsequently, eventually) - show time progression
-
-The two sentences must be COHERENT and the linking word must make logical sense with "${word}".
-
-Available linking categories: ${getLinkingWordsPrompt()}.
-
-Format as JSON: {"definition": "...", "example": "..."}`
-                            }
-                        ],
-                        temperature: 0.3,
-                        max_tokens: 200
+                        word: word,
+                        linkingWord: suggestLinkingWord(),
+                        linkingWordsPrompt: getLinkingWordsPrompt()
                     })
                 });
 
