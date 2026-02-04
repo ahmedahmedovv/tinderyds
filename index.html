@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tinder YDS">
@@ -619,6 +620,14 @@
             background: #f5efe3;
             padding: 1.5vh 3vw;
             border-radius: 2vw;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        @media (min-width: 1024px) {
+            .swipe-item:hover {
+                background: #ebe1d3;
+                transform: translateX(5px);
+            }
         }
 
         .swipe-icon {
@@ -640,6 +649,16 @@
             color: #8b7355;
             font-size: clamp(11px, 3vw, 12px);
             margin: 0;
+        }
+
+        .swipe-item kbd {
+            background: #f0e6d3;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #c4b49a;
+            font-family: inherit;
+            font-size: 11px;
+            color: #5c4a32;
         }
 
         .levels-table {
@@ -1098,6 +1117,441 @@
                 font-size: 10px;
             }
         }
+
+        /* ============================================
+           DESKTOP & TABLET ENHANCEMENTS
+           ============================================ */
+
+        /* Tablet (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            body {
+                padding: 20px;
+            }
+
+            .header {
+                max-width: 500px;
+                padding: 20px;
+            }
+
+            .card-container {
+                max-width: 500px;
+                height: 500px;
+                max-height: 550px;
+            }
+
+            .card {
+                padding: 30px;
+                border-radius: 20px;
+            }
+
+            .word {
+                font-size: 32px;
+            }
+
+            .definition {
+                font-size: 17px;
+            }
+
+            .example {
+                font-size: 16px;
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            .controls {
+                gap: 60px;
+                margin-top: 25px;
+                margin-bottom: 25px;
+            }
+
+            .btn {
+                width: 72px;
+                height: 72px;
+            }
+
+            .btn svg {
+                width: 30px;
+                height: 30px;
+            }
+
+            /* Show keyboard hints on tablet */
+            .keyboard-hints {
+                display: flex;
+                gap: 40px;
+                margin-top: 10px;
+                color: #8b7355;
+                font-size: 13px;
+            }
+        }
+
+        /* Laptop & Desktop (1024px+) */
+        @media (min-width: 1024px) {
+            body {
+                padding: 30px;
+                justify-content: flex-start;
+                min-height: 100vh;
+            }
+
+            .header {
+                max-width: 600px;
+                padding: 24px;
+                margin-top: 10px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .icon-btn {
+                width: 44px;
+                height: 44px;
+                transition: all 0.2s ease;
+            }
+
+            .icon-btn:hover {
+                background: #f0e6d3;
+                border-color: #8b7355;
+                transform: scale(1.1);
+            }
+
+            .streak-badge {
+                padding: 10px 16px;
+                font-size: 15px;
+            }
+
+            .stats {
+                gap: 40px;
+                font-size: 14px;
+            }
+
+            .stat-item strong {
+                font-size: 20px;
+            }
+
+            .card-container {
+                max-width: 600px;
+                width: 90%;
+                height: 520px;
+                max-height: 600px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 35px 40px;
+                border-radius: 24px;
+                box-shadow: 0 8px 40px rgba(92, 74, 50, 0.12);
+                transition: transform 0.25s ease, opacity 0.25s ease, box-shadow 0.3s ease;
+            }
+
+            .card:hover {
+                box-shadow: 0 12px 50px rgba(92, 74, 50, 0.18);
+            }
+
+            .word {
+                font-size: 36px;
+                margin-bottom: 12px;
+            }
+
+            .divider {
+                margin: 12px 0 18px 0;
+            }
+
+            .section-title {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+
+            .definition {
+                font-size: 18px;
+                line-height: 1.6;
+                max-width: 90%;
+                margin: 0 auto;
+            }
+
+            .example {
+                font-size: 17px;
+                padding: 24px 28px;
+                border-radius: 16px;
+                margin-top: 10px;
+                line-height: 1.6;
+            }
+
+            .card-badge {
+                font-size: 36px;
+                padding: 16px 32px;
+                border-width: 4px;
+                border-radius: 12px;
+            }
+
+            .level-indicator {
+                font-size: 12px;
+                padding: 6px 14px;
+                top: 20px;
+                right: 24px;
+            }
+
+            .controls {
+                gap: 80px;
+                margin-top: 30px;
+                margin-bottom: 30px;
+            }
+
+            .btn {
+                width: 80px;
+                height: 80px;
+                transition: all 0.2s ease;
+            }
+
+            .btn svg {
+                width: 32px;
+                height: 32px;
+            }
+
+            .btn:hover {
+                transform: scale(1.15);
+            }
+
+            .btn-dont-know:hover {
+                background: rgba(166, 92, 92, 0.1);
+                border-color: #a65c5c;
+            }
+
+            .btn-know:hover {
+                background: rgba(90, 124, 90, 0.1);
+                border-color: #5a7c5a;
+            }
+
+            /* Keyboard hints */
+            .keyboard-hints {
+                display: flex;
+                gap: 60px;
+                margin-top: 15px;
+                color: #8b7355;
+                font-size: 14px;
+            }
+
+            .keyboard-hints kbd {
+                background: #f0e6d3;
+                padding: 4px 10px;
+                border-radius: 6px;
+                border: 1px solid #c4b49a;
+                font-family: inherit;
+                font-size: 13px;
+            }
+
+            /* Progress bars */
+            .progress-bar {
+                max-width: 600px;
+                height: 6px;
+            }
+
+            .daily-progress {
+                max-width: 600px;
+                gap: 16px;
+            }
+
+            .daily-progress-bar {
+                height: 10px;
+            }
+
+            .daily-progress-text {
+                font-size: 13px;
+            }
+
+            /* Modal enhancements */
+            .modal-content {
+                max-width: 600px;
+                border-radius: 24px;
+            }
+
+            .modal-header {
+                padding: 28px 32px 20px;
+            }
+
+            .modal-header h2 {
+                font-size: 24px;
+            }
+
+            .modal-body {
+                padding: 24px 32px;
+            }
+
+            .modal-close {
+                top: 20px;
+                right: 24px;
+                padding: 12px;
+                cursor: pointer;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+
+            .modal-close:hover {
+                background: #f0e6d3;
+            }
+
+            /* Word list modal */
+            .word-list-modal .modal-content {
+                max-width: 650px;
+            }
+
+            .word-list-container {
+                max-height: calc(85vh - 220px);
+            }
+
+            .word-item {
+                padding: 16px 20px;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .word-item:hover {
+                background: #f5efe3;
+                transform: translateX(4px);
+            }
+
+            .tab-btn {
+                padding: 12px 20px;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .tab-btn:hover:not(.active) {
+                background: rgba(139, 115, 85, 0.1);
+            }
+
+            /* Notification */
+            .streak-notification {
+                border-radius: 16px;
+                padding: 20px 32px;
+            }
+        }
+
+        /* Large Desktop (1440px+) */
+        @media (min-width: 1440px) {
+            .header, .card-container, .progress-bar, .daily-progress {
+                max-width: 700px;
+            }
+
+            .card-container {
+                height: 580px;
+                max-height: 650px;
+            }
+
+            .word {
+                font-size: 40px;
+            }
+
+            .definition {
+                font-size: 20px;
+            }
+
+            .example {
+                font-size: 18px;
+            }
+
+            .word-list-modal .modal-content {
+                max-width: 750px;
+            }
+        }
+
+        /* Hide keyboard hints on mobile */
+        .keyboard-hints {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .keyboard-hints {
+                display: flex;
+                justify-content: center;
+            }
+        }
+
+        /* Touch device adjustments */
+        @media (hover: none) {
+            .btn:hover {
+                transform: none;
+            }
+
+            .icon-btn:hover {
+                transform: none;
+            }
+
+            .word-item:hover {
+                transform: none;
+            }
+        }
+
+        /* Landscape mode on mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 10px 16px;
+            }
+
+            .header-top {
+                margin-bottom: 8px;
+            }
+
+            .card-container {
+                height: 200px;
+                min-height: 180px;
+                margin: 8px auto;
+            }
+
+            .card {
+                padding: 12px 16px;
+            }
+
+            .word {
+                font-size: 18px;
+                margin-bottom: 4px;
+            }
+
+            .divider {
+                margin: 4px 0;
+            }
+
+            .section-title {
+                font-size: 8px;
+                margin-bottom: 2px;
+            }
+
+            .definition {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .example {
+                font-size: 11px;
+                padding: 8px 12px;
+                margin-top: 4px;
+            }
+
+            .controls {
+                margin-top: 10px;
+                margin-bottom: 10px;
+                gap: 40px;
+            }
+
+            .btn {
+                width: 44px;
+                height: 44px;
+            }
+
+            .btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .keyboard-hints {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1205,14 +1659,14 @@
                             <span class="swipe-icon">←</span>
                             <div>
                                 <strong>Don't Know</strong>
-                                <p>Swipe left or tap X. Word will appear again soon for review.</p>
+                                <p>Swipe left, tap X, or press <kbd>←</kbd> arrow. Word will appear again soon for review.</p>
                             </div>
                         </div>
                         <div class="swipe-item">
                             <span class="swipe-icon">→</span>
                             <div>
                                 <strong>Know It</strong>
-                                <p>Swipe right or tap ✓. Word advances to next level and appears less frequently.</p>
+                                <p>Swipe right, tap ✓, or press <kbd>→</kbd> arrow. Word advances to next level and appears less frequently.</p>
                             </div>
                         </div>
                     </div>
@@ -1334,16 +1788,22 @@
     </div>
 
     <div class="controls" id="controls">
-        <button class="btn btn-dont-know" onclick="handleDontKnow()" title="Don't Know (Left Arrow)">
+        <button class="btn btn-dont-know" onclick="handleDontKnow()" title="Don't Know (Left Arrow or Swipe Left)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
         </button>
-        <button class="btn btn-know" onclick="handleKnow()" title="Know It (Right Arrow)">
+        <button class="btn btn-know" onclick="handleKnow()" title="Know It (Right Arrow or Swipe Right)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 6L9 17l-5-5"/>
             </svg>
         </button>
+    </div>
+
+    <!-- Keyboard hints for desktop users -->
+    <div class="keyboard-hints" id="keyboardHints">
+        <span><kbd>←</kbd> Don't Know</span>
+        <span><kbd>→</kbd> Know It</span>
     </div>
 
     <script src="linkingwords.js"></script>
@@ -2370,6 +2830,29 @@
             if (e.key === 'Escape') {
                 closeInfoModal();
                 closeWordListModal();
+            }
+        });
+
+        // Keyboard navigation for card controls
+        document.addEventListener('keydown', (e) => {
+            // Only respond if no modal is open and not currently processing
+            const infoModal = document.getElementById('infoModal');
+            const wordListModal = document.getElementById('wordListModal');
+            
+            if (isProcessing) return;
+            if (infoModal && infoModal.classList.contains('show')) return;
+            if (wordListModal && wordListModal.classList.contains('show')) return;
+            if (currentCards.length === 0) return;
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    handleDontKnow();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    handleKnow();
+                    break;
             }
         });
 
