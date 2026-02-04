@@ -90,6 +90,26 @@ function getLinkingWordsPrompt() {
         .join("; ");
 }
 
+// Get a random linking word from all categories
+function getRandomLinkingWord() {
+    const allWords = Object.values(LINKING_WORDS).flat();
+    return allWords[Math.floor(Math.random() * allWords.length)];
+}
+
+// Get a random linking word from a specific category
+function getRandomLinkingWordFromCategory(category) {
+    const words = LINKING_WORDS[category];
+    if (!words) return getRandomLinkingWord();
+    return words[Math.floor(Math.random() * words.length)];
+}
+
+// Suggest a linking word for the AI to use (for variety)
+function suggestLinkingWord() {
+    const categories = Object.keys(LINKING_WORDS);
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    return getRandomLinkingWordFromCategory(randomCategory);
+}
+
 // Export for use in other files if needed
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { LINKING_WORDS, getLinkingWordsPrompt };
