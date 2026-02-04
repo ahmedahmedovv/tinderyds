@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordSwipe - Spaced Repetition Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .header {
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card-container {
+            position: relative;
+            width: 90%;
+            max-width: 400px;
+            height: 550px;
+            margin: 20px auto;
+            perspective: 1000px;
+        }
+
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .card:active {
+            cursor: grabbing;
+        }
+
+        .card.swiping-left {
+            transform: translateX(-150%) rotate(-30deg);
+            opacity: 0;
+        }
+
+        .card.swiping-right {
+            transform: translateX(150%) rotate(30deg);
+            opacity: 0;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 30px;
+            padding: 10px 20px;
+            border: 4px solid;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .card-badge.know {
+            right: 30px;
+            color: #4CAF50;
+            border-color: #4CAF50;
+            transform: rotate(15deg);
+        }
+
+        .card-badge.dont-know {
+            left: 30px;
+            color: #f44336;
+            border-color: #f44336;
+            transform: rotate(-15deg);
+        }
+
+        .card-badge.show {
+            opacity: 1;
+            transform: scale(1) rotate(var(--rotation, 0deg));
+        }
+
+        .word {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            margin: 15px 0;
+        }
+
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .definition {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .example {
+            font-size: 16px;
+            color: #667eea;
+            font-style: italic;
+            line-height: 1.5;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #888;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 30px;
+            margin-top: auto;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-dont-know {
+            background: #fff;
+            color: #f44336;
+        }
+
+        .btn-know {
+            background: #fff;
+            color: #4CAF50;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 40px;
+        }
+
+        .empty-state h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .progress-bar {
+            width: 90%;
+            max-width: 400px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 12px;
+            color: #888;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .swipe-hint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #aaa;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .swipe-hint span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .card-container {
+                height: 500px;
+            }
+            
+            .word {
+                font-size: 28px;
+            }
+            
+            .definition {
+                font-size: 16px;
+            }
+            
+            .example {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 WordSwipe</h1>
+        <p>Swipe right if you know it, left if you don't</p>
+        <div class="stats">
+            <span>📖 To Review: <strong id="toReviewCount">0</strong></span>
+            <span>✅ Learned: <strong id="learnedCount">0</strong></span>
+            <span>🎯 Streak: <strong id="streakCount">0</strong></span>
+        </div>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <div class="card-container" id="cardContainer">
+        <!-- Cards will be injected here -->
+    </div>
+
+    <div class="controls" id="controls">
+        <button class="btn btn-dont-know" onclick="handleDontKnow()" title="Don't Know (Left Arrow)">
+            ❌
+        </button>
+        <button class="btn btn-know" onclick="handleKnow()" title="Know It (Right Arrow)">
+            ✅
+        </button>
+    </div>
+
+    <script>
+        // Word list from mywords.js
+        const MYWORDS = [
+            "Abide by", "Abnormal", "Abolish", "Abort", "Abrupt", "Absurd", "Abundant", "Academic",
+            "Accelerate", "Accessible", "Accidental", "Accommodate", "Accomplish", "Account for",
+            "Accountable", "Accumulate", "Accurate", "Accurately", "Accusation", "Accuse of",
+            "Accustomed", "Achieve", "Acknowledge", "Acquainted with", "Acquire", "Act out",
+            "Activate", "Adapt", "Adapt to", "Addicted to", "Adequate", "Adjust", "Admire",
+            "Adopt", "Advance", "Advocate", "Affect", "Afford", "Affordable", "Afterwards",
+            "Agreeable", "Alarming", "Alert", "Along with", "Alter", "Ambitious", "Amusing",
+            "Ancient", "Annoyed", "Anticipate", "Antique", "Anxious", "Apparent", "Apparently",
+            "Appealing", "Applaud", "Appropriately", "Approve of", "Approximate", "Approximately",
+            "Arise", "Artificial", "Ascending", "Aspect", "Assault", "Assemble", "Assess",
+            "Assign", "Assist", "Associate", "Assorted", "Assume", "Assure", "Astonish",
+            "Astonished", "Astonishing", "At all costs", "Attach importance to", "Attached",
+            "Attain", "Attempt", "Attentive", "Attribute", "Authentic", "Authorize", "Available",
+            "Awareness", "Bankrupt", "Barely", "Be characterized by", "Be composed of",
+            "Be engaged in", "Be found in", "Be made up of", "Be marked by", "Be seen in",
+            "Be traced back to", "Become extinct", "Beneficial", "Betray", "Biased", "Bitter",
+            "Bizarre", "Blame for", "Blend", "Blooming", "Blossom", "Blow up", "Blurred",
+            "Bold", "Boldly", "Bond", "Boost", "Bothered", "Bottomless", "Bravely",
+            "Break away from", "Break off", "Break out", "Break out of", "Breath-taking",
+            "Brilliant", "Bring down", "Bring forward", "Bring in", "Bring out", "Bring over",
+            "Bring up", "Bring upon", "Broaden", "Brutal", "Build in", "Bump into",
+            "By definition", "By means of", "By nature", "By no means", "Candid", "Capable",
+            "Casually", "Catch on", "Catch up with", "Cautious", "Centrally", "Certainty",
+            "Certify", "Challenging", "Characterize", "Charge with", "Charming", "Cite",
+            "Civilized", "Clashing", "Clarify", "Classify", "Collective", "Colonize",
+            "Combine", "Come into being", "Come up with", "Command", "Commercial", "Commit",
+            "Commonplace", "Comparable", "Compared with", "Compatible", "Competent", "Complex",
+            "Complicated", "Composed of", "Concentrate", "Concerned", "Conclude", "Conclusive",
+            "Conclusively", "Concrete", "Conduct", "Confident", "Confidently", "Confirm",
+            "Conflict", "Confront", "Confronting", "Confuse", "Confusing", "Conscious",
+            "Consciously", "Conserve", "Consider", "Considerably", "Considerate", "Considerately",
+            "Consistent", "Consist of", "Construct", "Consume", "Contain", "Contemporary",
+            "Continuous", "Continuously", "Contradicting", "Contradictory", "Contrary to",
+            "Contribute", "Controversial", "Conventional", "Convert into", "Convey",
+            "Convincing", "Convincingly", "Cooperate", "Cooperative", "Cope with", "Corrupt",
+            "Countless", "Courageously", "Cowardly", "Cozy", "Creative", "Credible", "Credit",
+            "Deceitful", "Deceitfully", "Deceive", "Decent", "Decently", "Deceptive",
+            "Deceptively", "Decisive", "Decisively", "Decline", "Defeat", "Defectively",
+            "Defence", "Defenceless", "Defiant", "Defiantly", "Deficient", "Deficiently",
+            "Define", "Definite", "Degenerate", "Delude", "Delusively", "Demanding",
+            "Demolish", "Demonstrate", "Densely", "Deny", "Depart", "Depend on", "Dependable",
+            "Dependent on", "Depict", "Deprived of", "Derive", "Descend", "Desert", "Deserve",
+            "Design", "Desire", "Desperately", "Destructive", "Detach", "Detect", "Determined",
+            "Determine", "Devastate", "Devastating", "Devote", "Devoted", "Diagnose", "Dictate",
+            "Differ", "Diminish", "Dire", "Discard", "Discontinued", "Discontinue", "Discover",
+            "Disguise", "Dishonest", "Disintegrate", "Dismiss", "Dismantle", "Disobedient",
+            "Disobediently", "Disorder", "Disparate", "Dispel", "Displace", "Display",
+            "Displeased", "Disposable", "Dispose of", "Disputably", "Dispute", "Disputed",
+            "Disregard", "Disrupt", "Disseminate", "Distant", "Distinct", "Distinctive",
+            "Distinguish", "Distinguished", "Distorted", "Distract", "Distressed", "Distribute",
+            "Distrustfully", "Diverge", "Divergent", "Diverse", "Divine", "Divorce", "Domestic",
+            "Dominate", "Dominant", "Doubtful", "Doubtfully", "Drain", "Dramatic", "Dramatically",
+            "Drastic", "Drastically", "Draw out", "Draw up", "Dreadful", "Dubious", "Dubiously",
+            "Duplicate", "Durable", "Eager", "Economical", "Efficient", "Elaborate",
+            "Elaborately", "Elastic", "Elegant", "Eligible", "Eliminate", "Embarrassing",
+            "Embrace", "Emerge", "Emphasize", "Employ", "Empower", "Enable", "Encounter",
+            "Encourage", "Endanger", "Enforce", "Enforced", "Engulf", "Enhance", "Enlarge",
+            "Enlighten", "Enlist", "Enormous", "Enormously", "Enraged", "Ensuing", "Ensure",
+            "Enthusiastic", "Entitled", "Equally", "Equipped", "Equivalent", "Equivalently",
+            "Escalate", "Essential", "Essentially", "Establish", "Established", "Estimate",
+            "Estrange", "Evacuate", "Evaluate", "Evenly", "Eventually", "Evident", "Evidently",
+            "Evolve", "Evolve into", "Exceed", "Exceeding", "Exceedingly", "Excel",
+            "Exceptional", "Exceptionally", "Exchange ideas", "Exclude", "Execute", "Exhaust",
+            "Exhibit", "Existent", "Exotic", "Expand", "Expanding", "Expel", "Explicit",
+            "Explore", "Expose", "Extended", "Extensive", "Extensively", "Extinguisher",
+            "Extraordinary", "Extravagant", "Extreme", "Extremely", "Fabricated", "Fabulous",
+            "Facilitate", "Factual", "Fade away", "Falsify", "Fanatical", "Far-reaching",
+            "Fascinate", "Fascinating", "Faulty", "Favouring", "Fearsome", "Feature", "Fertile",
+            "Feverish", "Firmly", "Flexible", "Flee", "Flourish", "Flourishing", "Follow up",
+            "For a fraction of", "For the sake of", "Forecast", "Foresight", "Former",
+            "Formerly", "Fortify", "Foster", "Found", "Fragile", "Fragment", "Frank",
+            "Frustrated", "Fruitful", "Fulfill", "Fulfil", "Function", "Fundamental",
+            "Fundamentally", "Gainful", "Gaze at", "Generate", "Genuine", "Gigantic",
+            "Glance at", "Gleaming", "Glimpse", "Glimpse at", "Globally", "Gloomy", "Govern",
+            "Gradual", "Grant", "Grasp", "Grave", "Guarantee", "Guiltless", "Habitual",
+            "Hail", "Harmful", "Harsh", "Harshly", "Hastily", "Hazardous", "Heavenly",
+            "Hesitantly", "Highborn", "Highlight", "Hindering", "Hint", "Horrifying",
+            "Hostile", "Humble", "Humiliating", "Humorous", "Hurriedly", "Identical", "Idle",
+            "Illuminate", "Illustrate", "Imaginative", "Imitation", "Immense", "Immortal",
+            "Impaired", "Imperial", "Imperfectly", "Impressive", "Imprisoned", "In a nutshell",
+            "In abundance", "In accord with", "In accordance with", "In advance",
+            "In alignment with", "In an attempt to", "In an effort to", "In anticipation of",
+            "In charge of", "In collaboration with", "In combination with", "In compliance with",
+            "In conjunction with", "In contact with", "In detail", "In excess of", "In favor of",
+            "In good order", "In isolation", "In line with", "In many respects", "In moderation",
+            "In place of", "In possession of", "In preparation for", "In pursuit of",
+            "In reality", "In recognition of", "In relation to", "In response to", "In search of",
+            "In terms of", "In the context of", "In the course of", "In the face of",
+            "In the name of", "In the wake of", "In touch with", "Inaccessible", "Inadequately",
+            "Inadequate", "Incidental", "Incidentally", "Inclusive", "Inclusively",
+            "Inconsiderate", "Inconsistently", "Incredible", "Incredibly", "Indecisive",
+            "Indecisively", "Independently", "Indicate", "Indifferent", "Indifferently",
+            "Individual", "Inexpensive", "Infinite", "Influential", "Informally", "Inhuman",
+            "Initially", "Inject", "Innocent", "Innovative", "Insane", "Insignificant",
+            "Insincere", "Insistent", "Instantly", "Institute", "Instruct", "Insufficiently",
+            "Insult", "Intended", "Intensely", "Intentional", "Intentionally", "Interfere",
+            "Interpret", "Invaluable", "Invade", "Inventive", "Investigate", "Involve",
+            "Irrelevant", "Irreplaceable", "Irritated", "Isolate", "Isolated", "Joint",
+            "Joyous", "Justifiable", "Justify", "Keen", "Label", "Largely", "Lasting",
+            "Launch", "Leisurely", "Lengthy", "Liable", "Limited", "Locate", "Logical",
+            "Logically", "Long for", "Long-term", "Lucid", "Magnificent", "Magnify",
+            "Maintain", "Malevolent", "Manipulate", "Manufacture", "Marketable", "Mask",
+            "Massive", "Matchless", "Mature", "Mental", "Merciless", "Merge", "Mighty",
+            "Minor", "Mischievous", "Misleading", "Mismatched", "Moderate", "Modest",
+            "Modify", "Monetary", "Mortal", "Motivate", "Mount", "Mounting", "Mutual",
+            "Naive", "Needy", "Neglect", "Neglectfully", "Negligently", "Negotiate",
+            "Neutral", "Noble", "Non-stop", "Notable", "Noteworthy", "Notify", "Null",
+            "Object to", "Objective", "Objectively", "Obscurely", "Observe", "Obtain",
+            "Occupy", "Occur", "Omit", "On behalf of", "On the basis of", "On the grounds of",
+            "Oppressively", "Optimistic", "Originate", "Outline", "Outstanding", "Overcome",
+            "Overlap", "Overlook", "Overpower", "Overrun", "Particularly", "Participate in",
+            "Pave the way for", "Peculiarly", "Perceive", "Perplexed", "Perplexing", "Persist",
+            "Persistent", "Persuade", "Persuasively", "Pessimistic", "Phase out", "Picturesque",
+            "Pin down", "Plausible", "Plentiful", "Plot", "Plunge", "Ponder", "Portable",
+            "Portray", "Pose", "Postpone", "Precise", "Precisely", "Predict", "Preserve",
+            "Pretend", "Prevailing", "Primary", "Prior to", "Proficient", "Profitable",
+            "Progress", "Prohibit", "Project", "Prolonged", "Promote", "Prompt", "Promptly",
+            "Prone", "Proper", "Properly", "Propose", "Prosperous", "Provisionally",
+            "Proximate", "Psychological", "Publish", "Punctual", "Purely", "Pursue", "Puzzled",
+            "Questionable", "Questionably", "Quote", "Raid", "Rational", "Rationalize",
+            "Rebellious", "Recollect", "Recruit", "Redundant", "Refer to", "Refine",
+            "Reflect", "Reform", "Regard", "Regardless of", "Regulate", "Rehearse",
+            "Reinforce", "Reject", "Relate", "Related", "Release", "Relevant", "Reliable",
+            "Reluctantly", "Rely on", "Remark", "Remarkable", "Remote", "Renew", "Renovate",
+            "Renowned", "Repel", "Resemble", "Reside", "Resist", "Resolve", "Respectively",
+            "Rest on", "Restrain", "Restlessly", "Retain", "Retire", "Retreat", "Reverse",
+            "Revise", "Revolutionize", "Rigid", "Roam", "Robust", "Root out", "Ruin",
+            "Ruined", "Rule out", "Rural", "Sack", "Satirical", "Scan", "Scarcely",
+            "Scatter", "Securely", "Seductive", "Seek", "Seemingly", "Seize", "Sensibly",
+            "Sensitive", "Sentenced", "Sequential", "Sequentially", "Severe", "Severely",
+            "Shallow", "Shameful", "Shatter", "Shed light on", "Shield", "Shift", "Shoulder",
+            "Showy", "Shrinking", "Significant", "Significantly", "Signify", "Simulate",
+            "Sincerely", "Single-mindedly", "Skilled", "Slight", "Slightly", "Sluggish",
+            "Sluggishly", "Soaring", "Solely", "Sophisticated", "Spark", "Specifically",
+            "Specify", "Spectacular", "Speculate", "Stable", "Standardize", "Stark",
+            "Startled", "Steep", "Stem from", "Stern", "Stimulate", "Strenuous", "Strengthen",
+            "Stress", "Striking", "Struggle", "Stubbornly", "Stunning", "Subject to",
+            "Submerge", "Submit", "Subsequent", "Subsequently", "Substantial", "Substantially",
+            "Substitute", "Successive", "Successively", "Sufficient", "Suitably", "Summarize",
+            "Superior", "Supervise", "Supplement", "Susceptible", "Suspend", "Sustainable",
+            "Sustain", "Swift", "Symbolic", "Symbolize", "Sympathetic", "Synonymous",
+            "Tackle", "Tactfully", "Tangible", "Tear apart", "Tentative", "Tentatively",
+            "Terminate", "Terrifying", "Thorough", "Thoroughly", "Thoughtful", "Thoughtfully",
+            "Thoughtless", "Thrive", "Thriving", "To a certain degree", "To a large extent",
+            "To this end", "Tolerate", "Torture", "Toughen", "Trace", "Traditional",
+            "Transform", "Transmit", "Tremendous", "Trigger", "Typical", "Typically",
+            "Ultimate", "Ultimately", "Unanimous", "Unanimously", "Unavoidably", "Unclearly",
+            "Unconcernedly", "Under no circumstances", "Under pressure", "Undergo", "Underline",
+            "Undermine", "Undertake", "Unequally", "Unevenly", "Unfavourably", "Unify",
+            "Unintentionally", "Uninterestedly", "Unite", "Universal", "Universally",
+            "Unmask", "Unresponsive", "Unusually", "Unwillingly", "Uphold", "Urge", "Urgent",
+            "Urgently", "Utilize", "Vacant", "Vague", "Valid", "Validate", "Valuable",
+            "Vanish", "Varied", "Various", "Vary", "Vast", "Verify", "Versatile", "Vibrant",
+            "Vigorous", "Vigorously", "Violently", "Visible", "Visualize", "Void",
+            "Voluntary", "Voluntarily", "Vulnerable", "Wander", "Warrant", "Weighty", "Wicked",
+            "Widespread", "Widely", "Willingly", "With reference to", "With regard to",
+            "With the exception of", "With the help of", "With the intention of", "Worldly",
+            "Worsen", "Worrisome", "Yearn for", "Yield", "Abbreviate", "Abound", "Acclaimed",
+            "Acute", "Adamantly", "Adhere to", "Adherent", "Administer", "Adverse",
+            "Adversely", "Affluent", "Affluently", "Aggravate", "Agitated", "Akin to",
+            "Allege", "Alleviate", "Allocate", "Alluring", "Ambiguous", "Amplify", "Ample",
+            "Annex", "Annihilate", "Antagonistic", "Antecedent", "Apprehensive", "Apt to",
+            "Arable", "Arbitrary", "Arbitrarily", "Archaic", "Arduous", "Arid", "Ascertain",
+            "Aspire", "Assert", "Assertive", "Assuredly", "At odds with", "At the expense of",
+            "Augment", "Austere", "Autonomous", "Autonomously", "Avert", "Avid", "Barren",
+            "Belligerent", "Benign", "Bewildering", "Boundless", "Boundlessly", "By and large",
+            "Cast light on", "Catastrophic", "Cease", "Celestial", "Chiefly", "Cognitive",
+            "Coincide", "Come to terms with", "Commence", "Communal", "Compactly",
+            "Compassionate", "Compel", "Compelling", "Complement", "Comply with", "Comprehend",
+            "Comprehensive", "Comprehensively", "Comprise", "Conceal", "Concede", "Conceive",
+            "Concise", "Concisely", "Concur", "Confer", "Conjunction", "Conscience",
+            "Conscientiously", "Consecutive", "Consecutively", "Consent", "Constitute",
+            "Convict of", "Convicted", "Copious", "Correspondingly", "Counterfeit",
+            "Courteous", "Courteously", "Crave", "Culprit", "Curb", "Curtail", "Customary",
+            "Cynical", "Deduce", "Deduce from", "Deem", "Deter", "Deteriorate", "Detrimental",
+            "Deviate", "Devise", "Disclose", "Discriminate", "Dwell", "Embark on", "Emit",
+            "Empirical", "Enact", "Encompass", "Endemic", "Endorse", "Endure", "Engender",
+            "Entail", "Envisage", "Equivocal", "Erect", "Evoke", "Exemplify", "Expend",
+            "Exploit", "Extraterrestrial", "Fabricate", "Halt", "Hampering", "Haphazard",
+            "Hard-headed", "Harmonious", "Harmoniously", "Harness", "Hasten", "Heartening",
+            "Hereditary", "Hinder", "Hypothesize", "Ignite", "Illegitimate", "Illicit",
+            "Illustrious", "Imminent", "Impartial", "Impartially", "Imperative",
+            "Imperatively", "Implicit", "Imply", "Impose", "Impoverished", "Improbable",
+            "Inborn", "Incalculable", "Incessantly", "Incoherent", "Incompatible",
+            "Indefinitely", "Indigenous", "Indignant", "Indisputable", "Indispensable",
+            "Inevitable", "Inevitably", "Infeasible", "Infamous", "Infer", "Ingenious",
+            "Inherent", "Inhibit", "Inhospitable", "Initiate", "Innate", "Inquire",
+            "Instigate", "Instinctive", "Insubordinately", "Intact", "Intangible",
+            "Intensional", "Interim", "Intervene", "Intricate", "Intrinsic", "Intuitive",
+            "Invalidate", "Jubilant", "Laborious", "Lavish", "Legitimate", "Lucrative",
+            "Luminous", "Lush", "Malignant", "Malleable", "Maltreat", "Mandate", "Mandatory",
+            "Manifest", "Meagre", "Meagrely", "Meditative", "Meticulous", "Miscellaneous",
+            "Mitigate", "Monumental", "Monumentally", "Negligible", "Notional", "Notorious",
+            "Nullify", "Oblique", "Oblige", "Obligatory", "Obscure", "Obsolete", "Obstinate",
+            "Obstinately", "Obstruct", "Obstructive", "Opaque", "Oppress", "Ostentatious",
+            "Outmoded", "Overwhelming", "Overwhelmingly", "Paramount", "Pensively",
+            "Perilous", "Perplex", "Perpetual", "Perpetually", "Phenomenally", "Plummet",
+            "Precede", "Preceding", "Predate", "Predominantly", "Premeditated", "Prerequisite",
+            "Presume", "Pretentious", "Prevalent", "Primal", "Primarily", "Primeval",
+            "Primitive", "Principal", "Principally", "Proclaim", "Procrastinate", "Profound",
+            "Profoundly", "Prolific", "Prominent", "Prosecute", "Provoke", "Radically",
+            "Ratify", "Recede", "Recurrent", "Regal", "Render", "Renounce", "Repeal",
+            "Resent", "Resilient", "Resolute", "Resolutely", "Retard", "Ruthless", "Scanty",
+            "Sceptically", "Scornful", "Scrupulous", "Scrutinize", "Subjective", "Subtle",
+            "Supplant", "Suppress", "Surpass", "Unearth", "Unparalleled", "Unravel",
+            "Unrivalled", "Utterly"
+        ];
+
+        // Mistral AI API Configuration
+        const MISTRAL_API_KEY = 'UyFZtjZY3r5aNe1th2qtx6IBLynCc0ai';
+        const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
+
+        // Spaced Repetition Algorithm
+        class SpacedRepetition {
+            constructor() {
+                this.intervals = [1, 3, 7, 14, 30, 60, 120]; // Days between reviews
+                this.loadData();
+            }
+
+            loadData() {
+                const saved = localStorage.getItem('wordProgress');
+                this.progress = saved ? JSON.parse(saved) : {};
+            }
+
+            saveData() {
+                localStorage.setItem('wordProgress', JSON.stringify(this.progress));
+            }
+
+            getWordData(word) {
+                if (!this.progress[word]) {
+                    this.progress[word] = {
+                        level: 0, // 0 = new, 1-7 = learning levels
+                        nextReview: Date.now(),
+                        correctCount: 0,
+                        incorrectCount: 0,
+                        lastReviewed: null
+                    };
+                }
+                return this.progress[word];
+            }
+
+            processResult(word, known) {
+                const data = this.getWordData(word);
+                data.lastReviewed = Date.now();
+
+                if (known) {
+                    data.correctCount++;
+                    if (data.level < this.intervals.length) {
+                        data.level++;
+                    }
+                    // Calculate next review date
+                    const daysToAdd = this.intervals[Math.min(data.level - 1, this.intervals.length - 1)];
+                    data.nextReview = Date.now() + (daysToAdd * 24 * 60 * 60 * 1000);
+                } else {
+                    data.incorrectCount++;
+                    // Reset to earlier level but not completely
+                    data.level = Math.max(0, data.level - 1);
+                    // Review again soon (in 10 minutes)
+                    data.nextReview = Date.now() + (10 * 60 * 1000);
+                }
+
+                this.saveData();
+                return data;
+            }
+
+            getDueWords() {
+                const now = Date.now();
+                return MYWORDS.filter(word => {
+                    const data = this.getWordData(word);
+                    return data.nextReview <= now;
+                });
+            }
+
+            getStats() {
+                let learned = 0;
+                let toReview = 0;
+                const now = Date.now();
+
+                MYWORDS.forEach(word => {
+                    const data = this.getWordData(word);
+                    if (data.level >= 4) {
+                        learned++;
+                    }
+                    if (data.nextReview <= now) {
+                        toReview++;
+                    }
+                });
+
+                return { learned, toReview };
+            }
+        }
+
+        // Cache for word definitions
+        const wordCache = {};
+
+        // Fetch word data from Mistral AI
+        async function fetchWordData(word) {
+            if (wordCache[word]) {
+                return wordCache[word];
+            }
+
+            try {
+                const response = await fetch(MISTRAL_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${MISTRAL_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'mistral-tiny',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Provide a definition and example sentence for "${word}". Format as JSON: {"definition": "...", "example": "..."}`
+                            }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 200
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // Extract JSON from response
+                let jsonMatch = content.match(/\{[^}]+\}/);
+                if (jsonMatch) {
+                    const result = JSON.parse(jsonMatch[0]);
+                    wordCache[word] = result;
+                    return result;
+                }
+            } catch (error) {
+                console.error('Error fetching word data:', error);
+            }
+
+            // Fallback data
+            return {
+                definition: `A word or phrase expressing ${word.toLowerCase()}.`,
+                example: `The teacher asked us to use "${word}" in a sentence.`
+            };
+        }
+
+        // App State
+        const sr = new SpacedRepetition();
+        let currentCards = [];
+        let currentIndex = 0;
+        let streak = 0;
+        let isProcessing = false;
+
+        // Initialize
+        async function init() {
+            updateStats();
+            await loadCards();
+        }
+
+        function updateStats() {
+            const stats = sr.getStats();
+            document.getElementById('toReviewCount').textContent = stats.toReview;
+            document.getElementById('learnedCount').textContent = stats.learned;
+            document.getElementById('streakCount').textContent = streak;
+            
+            const progress = ((MYWORDS.length - stats.toReview) / MYWORDS.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        async function loadCards() {
+            const dueWords = sr.getDueWords();
+            
+            if (dueWords.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            // Shuffle and take up to 20 cards per session
+            const sessionWords = dueWords
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 20);
+
+            currentCards = sessionWords;
+            currentIndex = 0;
+
+            // Pre-fetch next few cards
+            for (let i = 0; i < Math.min(3, sessionWords.length); i++) {
+                fetchWordData(sessionWords[i]);
+            }
+
+            renderCard();
+        }
+
+        async function renderCard() {
+            const container = document.getElementById('cardContainer');
+            
+            if (currentIndex >= currentCards.length) {
+                showSessionComplete();
+                return;
+            }
+
+            const word = currentCards[currentIndex];
+            const wordData = sr.getWordData(word);
+            
+            container.innerHTML = `
+                <div class="card" id="currentCard">
+                    <div class="level-indicator">Level ${wordData.level}</div>
+                    <div class="card-badge dont-know" id="badgeDontKnow">DON'T KNOW</div>
+                    <div class="card-badge know" id="badgeKnow">KNOW IT</div>
+                    <div class="word">${word}</div>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading definition...</p>
+                    </div>
+                </div>
+            `;
+
+            // Enable swipe on the card
+            enableSwipe();
+
+            // Fetch and display word data
+            const data = await fetchWordData(word);
+            
+            const card = document.getElementById('currentCard');
+            if (card) {
+                card.innerHTML = `
+                    <div class="level-indicator">Level ${wordData.level}</div>
+                    <div class="card-badge dont-know" id="badgeDontKnow">DON'T KNOW</div>
+                    <div class="card-badge know" id="badgeKnow">KNOW IT</div>
+                    <div class="word">${word}</div>
+                    <div class="divider"></div>
+                    <div class="section-title">Definition</div>
+                    <div class="definition">${data.definition}</div>
+                    <div class="section-title">Example</div>
+                    <div class="example">"${data.example}"</div>
+                    <div class="swipe-hint">
+                        <span>← Don't Know</span>
+                        <span>•</span>
+                        <span>Know It →</span>
+                    </div>
+                `;
+            }
+
+            // Pre-fetch next card
+            if (currentIndex + 1 < currentCards.length) {
+                fetchWordData(currentCards[currentIndex + 1]);
+            }
+        }
+
+        function enableSwipe() {
+            const card = document.getElementById('currentCard');
+            if (!card) return;
+
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            const startDrag = (e) => {
+                if (isProcessing) return;
+                isDragging = true;
+                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                card.style.transition = 'none';
+            };
+
+            const drag = (e) => {
+                if (!isDragging || isProcessing) return;
+                e.preventDefault();
+                
+                currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const deltaX = currentX - startX;
+                const rotation = deltaX * 0.05;
+                
+                card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+
+                // Show badge based on swipe direction
+                const badgeKnow = document.getElementById('badgeKnow');
+                const badgeDontKnow = document.getElementById('badgeDontKnow');
+                
+                if (deltaX > 50) {
+                    badgeKnow.classList.add('show');
+                    badgeDontKnow.classList.remove('show');
+                } else if (deltaX < -50) {
+                    badgeDontKnow.classList.add('show');
+                    badgeKnow.classList.remove('show');
+                } else {
+                    badgeKnow.classList.remove('show');
+                    badgeDontKnow.classList.remove('show');
+                }
+            };
+
+            const endDrag = () => {
+                if (!isDragging || isProcessing) return;
+                isDragging = false;
+                
+                const deltaX = currentX - startX;
+                card.style.transition = 'transform 0.3s ease';
+
+                if (deltaX > 100) {
+                    card.classList.add('swiping-right');
+                    setTimeout(() => handleKnow(), 300);
+                } else if (deltaX < -100) {
+                    card.classList.add('swiping-left');
+                    setTimeout(() => handleDontKnow(), 300);
+                } else {
+                    card.style.transform = '';
+                    document.getElementById('badgeKnow')?.classList.remove('show');
+                    document.getElementById('badgeDontKnow')?.classList.remove('show');
+                }
+            };
+
+            // Touch events
+            card.addEventListener('touchstart', startDrag, { passive: false });
+            card.addEventListener('touchmove', drag, { passive: false });
+            card.addEventListener('touchend', endDrag);
+
+            // Mouse events
+            card.addEventListener('mousedown', startDrag);
+            card.addEventListener('mousemove', drag);
+            card.addEventListener('mouseup', endDrag);
+            card.addEventListener('mouseleave', () => {
+                if (isDragging) endDrag();
+            });
+        }
+
+        function handleKnow() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const word = currentCards[currentIndex];
+            sr.processResult(word, true);
+            streak++;
+            
+            const card = document.getElementById('currentCard');
+            if (card) {
+                card.classList.add('swiping-right');
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                updateStats();
+                renderCard();
+                isProcessing = false;
+            }, 300);
+        }
+
+        function handleDontKnow() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const word = currentCards[currentIndex];
+            sr.processResult(word, false);
+            streak = 0;
+            
+            const card = document.getElementById('currentCard');
+            if (card) {
+                card.classList.add('swiping-left');
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                updateStats();
+                renderCard();
+                isProcessing = false;
+            }, 300);
+        }
+
+        function showEmptyState() {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h2>🎉 All Caught Up!</h2>
+                    <p>You have no words due for review right now.</p>
+                    <p>Come back later for more practice!</p>
+                    <button class="btn-primary" onclick="resetProgress()">Start Fresh</button>
+                </div>
+            `;
+            document.getElementById('controls').style.display = 'none';
+        }
+
+        function showSessionComplete() {
+            const container = document.getElementById('cardContainer');
+            const stats = sr.getStats();
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h2>🎯 Session Complete!</h2>
+                    <p>You reviewed ${currentCards.length} words.</p>
+                    <p>Words learned: ${stats.learned} / ${MYWORDS.length}</p>
+                    <button class="btn-primary" onclick="loadCards()">Continue Learning</button>
+                </div>
+            `;
+            document.getElementById('controls').style.display = 'none';
+        }
+
+        function resetProgress() {
+            if (confirm('Reset all progress? This cannot be undone.')) {
+                localStorage.removeItem('wordProgress');
+                location.reload();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                handleKnow();
+            } else if (e.key === 'ArrowLeft') {
+                handleDontKnow();
+            }
+        });
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
