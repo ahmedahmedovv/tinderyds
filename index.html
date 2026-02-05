@@ -2648,6 +2648,7 @@
         let currentCards = [];
         let currentIndex = 0;
         let isProcessing = false;
+        let isDataLoading = false;
 
         // Initialize
         async function init() {
@@ -2721,11 +2722,17 @@
                 </div>
             `;
 
+            // Block swipes while loading data
+            isDataLoading = true;
+
             // Enable swipe on the card
             enableSwipe();
 
             // Fetch and display word data
             const data = await fetchWordData(word);
+            
+            // Allow swipes now that data is loaded
+            isDataLoading = false;
             
             // Highlight the word in the example
             const highlightedExample = highlightWordInExample(data.example, word);
@@ -2765,14 +2772,14 @@
             let isDragging = false;
 
             const startDrag = (e) => {
-                if (isProcessing) return;
+                if (isProcessing || isDataLoading) return;
                 isDragging = true;
                 startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                 card.style.transition = 'none';
             };
 
             const drag = (e) => {
-                if (!isDragging || isProcessing) return;
+                if (!isDragging || isProcessing || isDataLoading) return;
                 
                 // Prevent page scrolling during swipe
                 if (e.type === 'touchmove') {
@@ -2807,7 +2814,7 @@
             };
 
             const endDrag = () => {
-                if (!isDragging || isProcessing) return;
+                if (!isDragging || isProcessing || isDataLoading) return;
                 isDragging = false;
                 
                 const deltaX = currentX - startX;
