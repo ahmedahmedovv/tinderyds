@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tinder YDS">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#f4ecd8">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
     <title>Tinder YDS - Kelime Kartları</title>
@@ -1018,122 +1019,442 @@
             }
         }
 
-        /* iPhone 13 Mini Optimizations (375x812) */
-        @media (max-width: 380px) and (max-height: 815px) {
+        /* ============================================
+           IPHONE 13 MINI SPECIFIC OPTIMIZATIONS
+           Exact dimensions: 375 x 812 CSS points
+           Safe areas: 44px (status bar), 34px (home indicator)
+           ============================================ */
+        
+        /* Target iPhone 13 Mini specifically with device-pixel-ratio check */
+        @media only screen 
+            and (device-width: 375px) 
+            and (device-height: 812px) 
+            and (-webkit-device-pixel-ratio: 3) {
+            
+            /* Root adjustments for perfect fit */
+            body {
+                padding-top: max(44px, env(safe-area-inset-top));
+                padding-bottom: max(34px, env(safe-area-inset-bottom));
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+            }
+            
+            /* Header: Compact but readable */
             .header {
-                padding: 10px 16px;
+                padding: 8px 16px 6px 16px;
+                width: 100%;
+                max-width: 343px;
             }
 
             .header-top {
-                margin-bottom: 10px;
+                margin-bottom: 6px;
             }
             
             .header h1 {
-                font-size: 18px;
+                font-size: 17px;
+                letter-spacing: -0.3px;
+            }
+
+            .header-actions {
+                gap: 8px;
+            }
+
+            .icon-btn {
+                width: 32px;
+                height: 32px;
+                border-width: 1.5px;
+            }
+
+            .icon-btn svg {
+                width: 16px;
+                height: 16px;
             }
 
             .streak-badge {
-                padding: 3px 8px;
-                font-size: 12px;
+                padding: 4px 10px;
+                font-size: 13px;
+                gap: 4px;
             }
 
             .streak-badge span {
-                font-size: 10px;
+                font-size: 12px;
             }
             
             .stats {
-                gap: 20px;
+                gap: 24px;
                 font-size: 12px;
             }
 
             .stat-label {
                 font-size: 9px;
+                letter-spacing: 0.3px;
             }
 
             .stat-item strong {
-                font-size: 16px;
+                font-size: 15px;
             }
             
+            /* Daily progress bar */
+            .daily-progress {
+                width: 343px;
+                margin: 4px auto 8px auto;
+                gap: 8px;
+            }
+
+            .daily-progress-bar {
+                height: 5px;
+                border-radius: 2.5px;
+            }
+
+            .daily-progress-text {
+                font-size: 11px;
+            }
+
+            /* Progress bar */
+            .progress-bar {
+                width: 343px;
+                height: 3px;
+                margin: 4px auto 6px auto;
+            }
+            
+            /* Card container: Maximize available space */
             .card-container {
-                height: 360px;
+                width: 343px;
+                height: 456px;
+                min-height: unset;
+                max-height: unset;
                 margin: 4px auto;
             }
             
             .card {
-                padding: 14px;
-                border-radius: 14px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .level-indicator {
+                top: 12px;
+                right: 14px;
+                font-size: 10px;
+                padding: 3px 10px;
+                border-radius: 6px;
             }
             
             .word {
-                font-size: 22px;
-                margin-top: 0;
-                margin-bottom: 4px;
+                font-size: 24px;
+                margin: 4px 0 6px 0;
             }
             
             .divider {
-                margin: 3px 0 6px 0;
+                margin: 6px 0 10px 0;
+                height: 1px;
             }
             
             .section-title {
                 font-size: 9px;
-                margin-bottom: 2px;
+                margin-bottom: 6px;
+                letter-spacing: 0.8px;
+            }
+            
+            .definition {
+                font-size: 15px;
+                line-height: 1.5;
             }
             
             .example {
                 font-size: 14px;
-                padding: 10px 12px;
                 line-height: 1.55;
-                text-align: center;
+                padding: 12px 14px;
+                border-radius: 12px;
+                margin-top: 2px;
             }
-            
-            .definition {
-                font-size: 14px;
-                line-height: 1.55;
-                text-align: center;
+
+            .example .highlight-word {
+                padding: 0 3px;
             }
             
             .content-scroll {
-                gap: 8px;
+                gap: 10px;
             }
             
-            .swipe-hint {
-                font-size: 10px;
-                padding-top: 6px;
+            /* Card badge when swiping */
+            .card-badge {
+                font-size: 24px;
+                padding: 10px 20px;
+                border-width: 3px;
+                border-radius: 10px;
             }
             
+            /* Controls: Positioned nicely above home indicator */
             .controls {
-                gap: 40px;
-                margin-top: 6px;
+                gap: 60px;
+                margin-top: 10px;
                 margin-bottom: calc(8px + env(safe-area-inset-bottom));
             }
             
             .btn {
-                width: 52px;
-                height: 52px;
+                width: 56px;
+                height: 56px;
+                border-width: 2px;
             }
 
             .btn svg {
-                width: 22px;
-                height: 22px;
+                width: 24px;
+                height: 24px;
             }
-            
-            .card-badge {
-                font-size: 26px;
-                padding: 10px 22px;
+
+            /* Loading spinner */
+            .spinner {
+                width: 36px;
+                height: 36px;
                 border-width: 3px;
             }
 
-            .daily-progress {
-                margin: 0.5vh auto 1vh;
+            /* Empty state adjustments */
+            .empty-state {
+                padding: 20px;
             }
 
-            .daily-progress-bar {
-                height: 6px;
+            .empty-state h2 {
+                font-size: 20px;
+                margin-bottom: 8px;
             }
 
-            .daily-progress-text {
+            .empty-state p {
+                font-size: 14px;
+                margin-bottom: 16px;
+            }
+
+            .btn-primary {
+                padding: 12px 24px;
+                font-size: 15px;
+                border-radius: 20px;
+            }
+
+            /* Streak notification */
+            .streak-notification {
+                top: 60px;
+                padding: 12px 16px;
+                border-radius: 12px;
+            }
+
+            .streak-fire {
+                font-size: 28px;
+            }
+
+            .streak-title {
+                font-size: 15px;
+            }
+
+            .streak-subtitle {
+                font-size: 12px;
+            }
+
+            /* Modal adjustments for iPhone 13 Mini */
+            .modal-overlay {
+                padding: 16px;
+                padding-top: max(44px, env(safe-area-inset-top));
+                padding-bottom: max(34px, env(safe-area-inset-bottom));
+            }
+
+            .modal-content {
+                border-radius: 20px;
+                max-height: calc(100vh - 88px);
+            }
+
+            .modal-close {
+                top: 12px;
+                right: 12px;
+            }
+
+            .modal-close svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .modal-header {
+                padding: 16px 16px 12px 16px;
+            }
+
+            .modal-header h2 {
+                font-size: 18px;
+            }
+
+            .modal-body {
+                padding: 12px 16px;
+            }
+
+            .info-section {
+                margin-bottom: 16px;
+            }
+
+            .info-section h3 {
+                font-size: 15px;
+                margin-bottom: 8px;
+            }
+
+            .info-text {
+                font-size: 13px;
+                line-height: 1.5;
+                margin-bottom: 12px;
+            }
+
+            .swipe-item {
+                padding: 10px 12px;
+                gap: 12px;
+            }
+
+            .swipe-icon {
+                font-size: 18px;
+                width: 28px;
+            }
+
+            .swipe-item strong {
+                font-size: 14px;
+            }
+
+            .swipe-item p {
+                font-size: 12px;
+            }
+
+            .swipe-item kbd {
                 font-size: 10px;
+                padding: 2px 6px;
             }
+
+            .level-row {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .tips-list li {
+                font-size: 13px;
+                padding: 6px 0 6px 16px;
+            }
+
+            .stat-explained {
+                padding: 10px 12px;
+            }
+
+            .stat-explained strong {
+                font-size: 14px;
+            }
+
+            .stat-explained p {
+                font-size: 12px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px 16px 16px;
+            }
+
+            /* Word list modal specific */
+            .word-list-modal .modal-header {
+                padding: 12px 16px 8px 16px;
+            }
+
+            .word-list-tabs {
+                margin-top: 10px;
+                gap: 8px;
+            }
+
+            .tab-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+
+            .word-list-search {
+                padding: 8px 16px;
+            }
+
+            .word-list-search input {
+                padding: 10px 14px;
+                font-size: 15px;
+                border-radius: 10px;
+            }
+
+            .word-list-content {
+                padding: 8px 16px;
+            }
+
+            .word-item {
+                padding: 10px 12px;
+                border-radius: 10px;
+            }
+
+            .word-item-text {
+                font-size: 15px;
+            }
+
+            .word-item-meta {
+                font-size: 12px;
+            }
+
+            .word-item-status {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+
+            .word-list-empty {
+                padding: 30px 20px;
+            }
+
+            .word-list-empty-icon {
+                font-size: 36px;
+                margin-bottom: 12px;
+            }
+
+            .word-list-empty p {
+                font-size: 14px;
+            }
+        }
+
+        /* Fallback for similar small iPhones (12 mini, SE, etc.) */
+        @media only screen 
+            and (max-width: 380px) 
+            and (max-height: 815px) 
+            and (-webkit-device-pixel-ratio: 3) {
+            
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .card-container {
+                width: 92%;
+                height: calc(100vh - 220px);
+                max-height: 480px;
+            }
+            
+            .header {
+                width: 92%;
+                padding: 10px 16px;
+            }
+            
+            .controls {
+                margin-bottom: calc(10px + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* ============================================
+           JS-BASED DEVICE CLASSES
+           ============================================ */
+        
+        /* iPhone 13 Mini class added by JavaScript detection */
+        body.iphone-13-mini {
+            /* Ensures smooth scrolling on iPhone 13 Mini */
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Standalone/PWA mode adjustments */
+        body.standalone {
+            /* Additional padding for standalone mode */
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        body.standalone .streak-notification {
+            /* Adjust notification position in standalone mode */
+            top: calc(env(safe-area-inset-top) + 10px);
         }
 
         /* ============================================
@@ -2294,6 +2615,32 @@
                 }
             }
         }
+
+        // Device Detection for iPhone 13 Mini optimizations
+        function detectDevice() {
+            const width = window.screen.width;
+            const height = window.screen.height;
+            const dpr = window.devicePixelRatio;
+            const isStandalone = window.navigator.standalone === true;
+            
+            // iPhone 13 Mini detection: 375x812 CSS pixels, 3x DPR
+            const isIPhone13Mini = (width === 375 && height === 812 && dpr === 3) || 
+                                   (width === 812 && height === 375 && dpr === 3); // landscape
+            
+            if (isIPhone13Mini) {
+                document.body.classList.add('iphone-13-mini');
+                // Store for use in other functions
+                window.isIPhone13Mini = true;
+            }
+            
+            // Add standalone class for installed PWA
+            if (isStandalone) {
+                document.body.classList.add('standalone');
+            }
+        }
+        
+        // Run device detection immediately
+        detectDevice();
 
         // App State
         const sr = new SpacedRepetition();
