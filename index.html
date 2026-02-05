@@ -2603,7 +2603,7 @@
 
         // Prefetch next N cards in the background
         function prefetchUpcomingCards() {
-            const prefetchCount = 3; // Prefetch next 3 cards
+            const prefetchCount = 5; // Prefetch next 5 cards
             for (let i = 1; i <= prefetchCount; i++) {
                 const nextIndex = currentIndex + i;
                 if (nextIndex < currentCards.length) {
@@ -2686,8 +2686,8 @@
             currentCards = sessionWords;
             currentIndex = 0;
 
-            // Pre-fetch first few cards
-            for (let i = 0; i < Math.min(3, sessionWords.length); i++) {
+            // Pre-fetch first 2 cards immediately (before showing anything)
+            for (let i = 0; i < Math.min(2, sessionWords.length); i++) {
                 fetchWordData(sessionWords[i]);
             }
 
