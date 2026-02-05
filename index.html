@@ -2774,6 +2774,11 @@
             const drag = (e) => {
                 if (!isDragging || isProcessing) return;
                 
+                // Prevent page scrolling during swipe
+                if (e.type === 'touchmove') {
+                    e.preventDefault();
+                }
+                
                 const touch = e.type.includes('mouse') ? e : e.touches[0];
                 currentX = touch.clientX;
                 const deltaX = currentX - startX;
@@ -2833,7 +2838,7 @@
 
             // Touch events - optimized for iPhone
             card.addEventListener('touchstart', startDrag, { passive: true });
-            card.addEventListener('touchmove', drag, { passive: true });
+            card.addEventListener('touchmove', drag, { passive: false });
             card.addEventListener('touchend', endDrag);
             card.addEventListener('touchcancel', endDrag);
 
