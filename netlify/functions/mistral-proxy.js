@@ -71,17 +71,27 @@ Format as JSON: {"definition": "...", "example": "..."}`;
 
         let response;
         try {
-            response = await fetch('https://api.openai.com/v1/responses', {
+            // Use Chat Completions API (gpt-5-nano requires this, not Responses API)
+            response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    input: prompt,
-                    store: true,
-                    max_output_tokens: 500
+                    model: 'gpt-5-nano',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 200
                 })
             });
         } catch (fetchError) {
@@ -118,10 +128,10 @@ Format as JSON: {"definition": "...", "example": "..."}`;
             };
         }
         
-        // Transform OpenAI Responses API format to match the expected format in frontend
-        // OpenAI returns output_text directly, we wrap it to match the previous structure
+        // Transform Chat Completions API format to output_text format for frontend compatibility
+        const content = data.choices?.[0]?.message?.content || '';
         const transformedData = {
-            output_text: data.output_text || ''
+            output_text: content
         };
         
         console.log('Transformed data:', JSON.stringify(transformedData).substring(0, 200));
