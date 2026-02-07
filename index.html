@@ -2541,9 +2541,12 @@
         // Cache for word definitions
         const wordCache = {};
         const prefetchQueue = new Set();
+        const failedWords = new Set(); // Track words that failed after retries
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY_BASE = 1000; // Start with 1 second delay
 
-        // Fetch word data from Mistral AI
-        async function fetchWordData(word) {
+        // Fetch word data from Mistral AI with retry logic
+        async function fetchWordData(word, retryCount = 0) {
             if (wordCache[word]) {
                 return wordCache[word];
             }
@@ -2573,32 +2576,223 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('API request failed');
+                    throw new Error(`API request failed with status: ${response.status}`);
                 }
 
                 const data = await response.json();
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('Invalid API response structure');
+                }
+                
                 const content = data.choices[0].message.content;
                 
-                // Extract JSON from response
-                let jsonMatch = content.match(/\{[^}]+\}/);
+                // Extract JSON from response - try multiple patterns
+                let result = null;
+                
+                // Try to find JSON object in the response
+                const jsonMatch = content.match(/\{[\s\S]*?\}/);
                 if (jsonMatch) {
-                    const result = JSON.parse(jsonMatch[0]);
-                    wordCache[word] = result;
-                    return result;
+                    try {
+                        result = JSON.parse(jsonMatch[0]);
+                    } catch (parseError) {
+                        console.warn('JSON parse failed, trying alternative extraction:', parseError);
+                    }
                 }
+                
+                // If no valid JSON, try to extract definition and example manually
+                if (!result || !result.definition || !result.example) {
+                    result = extractDataFromText(content, word);
+                }
+                
+                // Validate the result has required fields
+                if (result && result.definition && result.example) {
+                    wordCache[word] = result;
+                    failedWords.delete(word); // Remove from failed if previously failed
+                    return result;
+                } else {
+                    throw new Error('Response missing required fields');
+                }
+                
             } catch (error) {
-                console.error('Error fetching word data:', error);
+                console.error(`Error fetching word data for "${word}" (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error);
+                
+                // Retry logic with exponential backoff
+                if (retryCount < MAX_RETRIES) {
+                    const delay = RETRY_DELAY_BASE * Math.pow(2, retryCount);
+                    console.log(`Retrying in ${delay}ms...`);
+                    await new Promise(r => setTimeout(r, delay));
+                    prefetchQueue.delete(word);
+                    return fetchWordData(word, retryCount + 1);
+                }
+                
+                // All retries exhausted
+                failedWords.add(word);
+                
+                // Show error notification to user (only on final retry)
+                if (retryCount === MAX_RETRIES) {
+                    showErrorNotification(`Couldn't load "${word}". Using basic definition.`);
+                }
+                
             } finally {
                 prefetchQueue.delete(word);
             }
 
-            // Fallback data
-            const fallback = {
-                definition: `A word or phrase expressing ${word.toLowerCase()}.`,
-                example: `The teacher asked us to use "${word}" in a sentence.`
-            };
+            // Generate contextual fallback based on word patterns
+            const fallback = generateFallbackData(word);
             wordCache[word] = fallback;
             return fallback;
+        }
+
+        // Extract data from non-JSON text
+        function extractDataFromText(text, word) {
+            const result = { definition: '', example: '' };
+            
+            // Look for definition patterns
+            const defPatterns = [
+                /definition["']?\s*:?\s*["']?([^"\n]+)/i,
+                /means?\s*:?\s*([^\n\.]+)/i,
+                /is\s+a[n]?\s+([^\n\.]+)/i,
+                /refers?\s+to\s+([^\n\.]+)/i
+            ];
+            
+            for (const pattern of defPatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    result.definition = match[1].trim();
+                    break;
+                }
+            }
+            
+            // Look for example patterns
+            const examplePatterns = [
+                /example["']?\s*:?\s*["']?([^"\n]+)/i,
+                /example\s+sentence["']?\s*:?\s*["']?([^"\n]+)/i,
+                /"([^"]+)"/,
+                /e\.g\.\s*:?\s*([^\n\.]+)/i
+            ];
+            
+            for (const pattern of examplePatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    result.example = match[1].trim();
+                    break;
+                }
+            }
+            
+            // Clean up the results
+            if (result.definition) {
+                result.definition = result.definition.replace(/^["']|["']$/g, '').trim();
+            }
+            if (result.example) {
+                result.example = result.example.replace(/^["']|["']$/g, '').trim();
+                // Add word highlighting if not present
+                if (!result.example.toLowerCase().includes(word.toLowerCase())) {
+                    result.example = `${word} is commonly used in academic contexts.`;
+                }
+            }
+            
+            return result;
+        }
+
+        // Generate better fallback data based on word patterns
+        function generateFallbackData(word) {
+            const lowerWord = word.toLowerCase();
+            
+            // Pattern-based fallbacks for common word types
+            if (lowerWord.endsWith('ly')) {
+                // Adverbs
+                return {
+                    definition: `In a manner that is ${lowerWord.replace('ly', '')}. Used to modify verbs, adjectives, or other adverbs.`,
+                    example: `The student ${lowerWord} completed the assignment before the deadline.`
+                };
+            }
+            
+            if (lowerWord.endsWith('tion') || lowerWord.endsWith('sion') || lowerWord.endsWith('ment')) {
+                // Nouns
+                return {
+                    definition: `The act, process, or result of ${lowerWord.replace(/(tion|sion|ment)$/, 'ting')}. A concept or state.`,
+                    example: `The ${lowerWord} of this theory has been widely debated in academic circles.`
+                };
+            }
+            
+            if (lowerWord.endsWith('ing') && !lowerWord.includes(' ')) {
+                // Gerunds/present participles
+                return {
+                    definition: `The process or action of ${lowerWord}. An ongoing activity or state.`,
+                    example: `${word} requires careful consideration of all relevant factors.`
+                };
+            }
+            
+            if (lowerWord.startsWith('un') || lowerWord.startsWith('in') || lowerWord.startsWith('dis')) {
+                // Negative prefixes
+                const rootWord = lowerWord.replace(/^(un|in|dis)/, '');
+                return {
+                    definition: `Not ${rootWord}; the opposite or absence of ${rootWord}.`,
+                    example: `The results were ${lowerWord}, which surprised the researchers.`
+                };
+            }
+            
+            if (lowerWord.includes(' ')) {
+                // Phrasal verbs or multi-word expressions
+                return {
+                    definition: `An expression meaning to perform the action described by ${word}. Commonly used in formal contexts.`,
+                    example: `Researchers must ${lowerWord} when analyzing complex data sets.`
+                };
+            }
+            
+            // Default fallback with better context
+            return {
+                definition: `Relating to or characterized by ${lowerWord}; an important academic vocabulary term.`,
+                example: `The professor emphasized that understanding "${word}" is essential for academic success.`
+            };
+        }
+
+        // Show error notification to user
+        function showErrorNotification(message) {
+            // Remove any existing error notifications
+            const existing = document.querySelector('.error-notification');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = 'streak-notification error-notification';
+            notification.innerHTML = `
+                <div class="streak-notification-content">
+                    <span style="font-size: 24px;">⚠️</span>
+                    <div>
+                        <div class="streak-title" style="color: #e67e22;">Connection Issue</div>
+                        <div class="streak-subtitle">${message}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // Retry fetching failed words (can be called periodically or on user action)
+        async function retryFailedWords() {
+            if (failedWords.size === 0) return;
+            
+            const wordsToRetry = Array.from(failedWords);
+            failedWords.clear(); // Clear before retry
+            
+            for (const word of wordsToRetry) {
+                // Remove from cache to force re-fetch
+                delete wordCache[word];
+            }
+            
+            // Show retry notification
+            showErrorNotification(`Retrying ${wordsToRetry.length} failed word(s)...`);
+            
+            // Re-fetch current word immediately if it was failed
+            if (wordsToRetry.includes(currentCards[currentIndex])) {
+                await renderCard();
+            }
         }
 
         // Prefetch only the next word in the background
