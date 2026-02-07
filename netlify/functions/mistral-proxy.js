@@ -98,7 +98,7 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-5-mini-2025-08-07',
+                    model: 'gpt-3.5-turbo',
                     messages: [
                         {
                             role: 'system',
