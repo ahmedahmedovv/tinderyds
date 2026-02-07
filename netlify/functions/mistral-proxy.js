@@ -78,7 +78,7 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-5-nano',
+                    model: 'gpt-4o-mini',
                     input: prompt,
                     store: true,
                     max_output_tokens: 500
