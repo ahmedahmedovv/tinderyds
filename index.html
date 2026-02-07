@@ -2357,9 +2357,9 @@
             "Unrivalled", "Utterly"
         ];
 
-        // Mistral AI API Configuration
+        // OpenAI API Configuration
         // API key is now securely stored in Netlify Environment Variables
-        const MISTRAL_API_URL = '/api/mistral';
+        const OPENAI_API_URL = '/api/mistral';
 
         // Daily Streak Manager
         class StreakManager {
@@ -2545,7 +2545,7 @@
         const MAX_RETRIES = 3;
         const RETRY_DELAY_BASE = 1000; // Start with 1 second delay
 
-        // Fetch word data from Mistral AI with retry logic
+        // Fetch word data from OpenAI with retry logic
         async function fetchWordData(word, retryCount = 0) {
             if (wordCache[word]) {
                 return wordCache[word];
@@ -2563,7 +2563,7 @@
             prefetchQueue.add(word);
 
             try {
-                const response = await fetch(MISTRAL_API_URL, {
+                const response = await fetch(OPENAI_API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2581,11 +2581,12 @@
 
                 const data = await response.json();
                 
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                // Handle OpenAI Responses API format
+                const content = data.output_text || '';
+                
+                if (!content) {
                     throw new Error('Invalid API response structure');
                 }
-                
-                const content = data.choices[0].message.content;
                 
                 // Extract JSON from response - try multiple patterns
                 let result = null;

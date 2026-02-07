@@ -128,18 +128,20 @@ const intervals = [1, 3, 7, 14, 30, 60, 120];
 - Streak resets if user misses a day
 - Progress bar shows daily progress (orange = in progress, green = goal met)
 
-### Mistral AI Integration
+### OpenAI Integration
 
-The app generates dynamic content for each word using Mistral AI:
+The app generates dynamic content for each word using OpenAI's Responses API:
 
 ```javascript
-const MISTRAL_API_KEY = '...'; // Hardcoded in index.html
-const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
+const OPENAI_API_KEY = '...'; // Stored in Netlify Environment Variables
+const OPENAI_API_URL = '/api/mistral'; // Proxied through Netlify Function
 ```
+
+Model: `gpt-5-nano`
 
 Prompt asks for:
 - Brief academic definition (max 20 words)
-- Two connected academic example sentences using linking words
+- One academic example sentence using both the target word and a linking word
 - Response in JSON format
 
 ## Code Style Guidelines
@@ -179,7 +181,7 @@ No automated tests are currently implemented. Manual testing checklist:
 
 ## Security Considerations
 
-✅ **SECURED**: The Mistral AI API key is now stored securely in Netlify Environment Variables and accessed through a Netlify Function proxy.
+✅ **SECURED**: The OpenAI API key is stored securely in Netlify Environment Variables and accessed through a Netlify Function proxy.
 
 **Implementation**:
 - API key is stored in Netlify dashboard (Site settings → Environment variables)
@@ -188,8 +190,9 @@ No automated tests are currently implemented. Manual testing checklist:
 
 **Setup Required**:
 1. Go to Netlify dashboard → Site settings → Environment variables
-2. Add variable: `MISTRAL_API_KEY` with your API key value
-3. Redeploy the site
+2. Add variable: `OPENAI_API_KEY` with your OpenAI API key value
+3. Remove the old `MISTRAL_API_KEY` if it exists
+4. Redeploy the site
 
 ## Data Persistence
 
@@ -204,7 +207,7 @@ User data is stored in browser LocalStorage:
 
 ## Known Limitations
 
-1. **No offline support**: Requires internet connection for Mistral AI API
+1. **No offline support**: Requires internet connection for OpenAI API
 2. **API rate limits**: Subject to Mistral AI rate limiting
 3. **Single device**: No cloud sync between devices
 4. ~~**Hardcoded API key**~~: ✅ Fixed - Now uses Netlify Functions
@@ -214,6 +217,7 @@ User data is stored in browser LocalStorage:
 ## Future Enhancement Ideas
 
 - ~~Backend proxy for API calls~~ ✅ Done - Using Netlify Functions
+- ~~Switch from Mistral to OpenAI~~ ✅ Done - Now using GPT-5-nano via Responses API
 - User accounts and cloud sync
 - Offline mode with service worker
 - Additional vocabulary sets

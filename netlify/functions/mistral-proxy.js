@@ -1,4 +1,4 @@
-// Netlify Function to proxy Mistral AI API requests
+// Netlify Function to proxy OpenAI API requests
 // This keeps your API key secure on the server side
 
 exports.handler = async (event, context) => {
@@ -39,7 +39,7 @@ exports.handler = async (event, context) => {
         }
 
         // Get API key from environment variable (set in Netlify dashboard)
-        const apiKey = process.env.MISTRAL_API_KEY;
+        const apiKey = process.env.OPENAI_API_KEY;
         
         if (!apiKey) {
             return {
@@ -49,22 +49,7 @@ exports.handler = async (event, context) => {
             };
         }
 
-        const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'mistral-large-latest',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.'
-                    },
-                    {
-                        role: 'user',
-                        content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
+        const prompt = `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
 
 CRITICAL INSTRUCTION: 
 - Create a SINGLE coherent academic sentence (max 25 words) that naturally incorporates BOTH words
@@ -79,30 +64,43 @@ The sentence must be grammatically correct and the linking word must connect ide
 
 ${linkingWordsPrompt ? 'Available linking words: ' + linkingWordsPrompt + '.' : ''}
 
-Format as JSON: {"definition": "...", "example": "..."}`
-                    }
-                ],
-                temperature: 0.3,
-                max_tokens: 200
+Format as JSON: {"definition": "...", "example": "..."}`;
+
+        const response = await fetch('https://api.openai.com/v1/responses', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-5-nano',
+                input: prompt,
+                store: true
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Mistral API error:', errorText);
+            console.error('OpenAI API error:', errorText);
             return {
                 statusCode: response.status,
                 headers,
-                body: JSON.stringify({ error: 'Failed to fetch from Mistral API' })
+                body: JSON.stringify({ error: 'Failed to fetch from OpenAI API' })
             };
         }
 
         const data = await response.json();
         
+        // Transform OpenAI Responses API format to match the expected format in frontend
+        // OpenAI returns output_text directly, we wrap it to match the previous structure
+        const transformedData = {
+            output_text: data.output_text || ''
+        };
+        
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify(data)
+            body: JSON.stringify(transformedData)
         };
 
     } catch (error) {
