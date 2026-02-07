@@ -50,7 +50,9 @@ exports.handler = async (event, context) => {
             };
         }
 
-        const prompt = `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
+        const instructions = 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.';
+
+        const userPrompt = `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
 
 CRITICAL INSTRUCTION: 
 - Create a SINGLE coherent academic sentence (max 25 words) that naturally incorporates BOTH words
@@ -72,6 +74,7 @@ Format as JSON: {"definition": "...", "example": "..."}`;
         let response;
         try {
             // Use OpenAI Responses API with gpt-5-nano
+            // Note: Responses API uses "instructions" for system prompts and "input" for user prompts
             response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
@@ -80,16 +83,8 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                 },
                 body: JSON.stringify({
                     model: 'gpt-5-nano',
-                    input: [
-                        {
-                            role: 'system',
-                            content: 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.'
-                        },
-                        {
-                            role: 'user',
-                            content: prompt
-                        }
-                    ],
+                    instructions: instructions,
+                    input: userPrompt,
                     store: true
                 })
             });
@@ -141,10 +136,6 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                     }
                 }
             }
-        }
-        // Fallback: try output_text at root level
-        if (!content && data.output_text) {
-            content = data.output_text;
         }
         
         const transformedData = {
