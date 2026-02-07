@@ -71,8 +71,8 @@ Format as JSON: {"definition": "...", "example": "..."}`;
 
         let response;
         try {
-            // Use Chat Completions API (gpt-5-nano requires this, not Responses API)
-            response = await fetch('https://api.openai.com/v1/chat/completions', {
+            // Use OpenAI Responses API with gpt-5-nano
+            response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                 },
                 body: JSON.stringify({
                     model: 'gpt-5-nano',
-                    messages: [
+                    input: [
                         {
                             role: 'system',
                             content: 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.'
@@ -90,8 +90,7 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                             content: prompt
                         }
                     ],
-                    temperature: 0.3,
-                    max_tokens: 200
+                    store: true
                 })
             });
         } catch (fetchError) {
@@ -128,8 +127,26 @@ Format as JSON: {"definition": "...", "example": "..."}`;
             };
         }
         
-        // Transform Chat Completions API format to output_text format for frontend compatibility
-        const content = data.choices?.[0]?.message?.content || '';
+        // Extract output_text from Responses API format
+        // The Responses API returns output in data.output array with text content
+        let content = '';
+        if (data.output && Array.isArray(data.output)) {
+            for (const item of data.output) {
+                if (item.type === 'message' && item.content && Array.isArray(item.content)) {
+                    for (const contentItem of item.content) {
+                        if (contentItem.type === 'output_text') {
+                            content = contentItem.text;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        // Fallback: try output_text at root level
+        if (!content && data.output_text) {
+            content = data.output_text;
+        }
+        
         const transformedData = {
             output_text: content
         };
