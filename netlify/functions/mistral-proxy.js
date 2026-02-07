@@ -42,6 +42,7 @@ exports.handler = async (event, context) => {
         const apiKey = process.env.OPENAI_API_KEY;
         
         if (!apiKey) {
+            console.error('OPENAI_API_KEY environment variable is not set');
             return {
                 statusCode: 500,
                 headers,
@@ -66,36 +67,63 @@ ${linkingWordsPrompt ? 'Available linking words: ' + linkingWordsPrompt + '.' : 
 
 Format as JSON: {"definition": "...", "example": "..."}`;
 
-        const response = await fetch('https://api.openai.com/v1/responses', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-5-nano',
-                input: prompt,
-                store: true
-            })
-        });
+        console.log('Sending request to OpenAI for word:', word);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('OpenAI API error:', errorText);
+        let response;
+        try {
+            response = await fetch('https://api.openai.com/v1/responses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-5-nano',
+                    input: prompt,
+                    store: true
+                })
+            });
+        } catch (fetchError) {
+            console.error('Fetch error:', fetchError);
             return {
-                statusCode: response.status,
+                statusCode: 502,
                 headers,
-                body: JSON.stringify({ error: 'Failed to fetch from OpenAI API' })
+                body: JSON.stringify({ error: 'Failed to connect to OpenAI API', details: fetchError.message })
             };
         }
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('OpenAI response status:', response.status);
+        console.log('OpenAI response body:', responseText.substring(0, 500));
+
+        if (!response.ok) {
+            console.error('OpenAI API error:', response.status, responseText);
+            return {
+                statusCode: response.status,
+                headers,
+                body: JSON.stringify({ error: 'Failed to fetch from OpenAI API', details: responseText })
+            };
+        }
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: 'Invalid JSON from OpenAI API', details: responseText.substring(0, 200) })
+            };
+        }
         
         // Transform OpenAI Responses API format to match the expected format in frontend
         // OpenAI returns output_text directly, we wrap it to match the previous structure
         const transformedData = {
             output_text: data.output_text || ''
         };
+        
+        console.log('Transformed data:', JSON.stringify(transformedData).substring(0, 200));
         
         return {
             statusCode: 200,
@@ -108,7 +136,7 @@ Format as JSON: {"definition": "...", "example": "..."}`;
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: 'Internal server error' })
+            body: JSON.stringify({ error: 'Internal server error', details: error.message, stack: error.stack })
         };
     }
 };
