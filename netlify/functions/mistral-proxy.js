@@ -151,10 +151,22 @@ Format as JSON: {"definition": "...", "example": "..."}`;
         console.log('Full response:', JSON.stringify(data, null, 2).substring(0, 1000));
         
         // Extract content from Chat Completions API format
-        const content = data.choices?.[0]?.message?.content || '';
+        const choice = data.choices?.[0];
+        const message = choice?.message;
+        const content = message?.content || '';
+        const finishReason = choice?.finish_reason;
+        const refusal = message?.refusal;
         
         if (!content) {
-            console.error('Empty content. choices:', JSON.stringify(data.choices));
+            console.error('Empty content. finish_reason:', finishReason);
+            console.error('Refusal:', refusal);
+            console.error('Message:', JSON.stringify(message));
+            console.error('Full response:', JSON.stringify(data));
+        }
+        
+        // Handle refusal case
+        if (refusal) {
+            console.error('Model refused to generate content:', refusal);
         }
         
         const transformedData = {
