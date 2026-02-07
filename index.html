@@ -2601,6 +2601,18 @@
             return fallback;
         }
 
+        // Prefetch only the next word in the background
+        function prefetchNextWord() {
+            const nextIndex = currentIndex + 1;
+            if (nextIndex < currentCards.length) {
+                const nextWord = currentCards[nextIndex];
+                if (!wordCache[nextWord] && !prefetchQueue.has(nextWord)) {
+                    // Fetch in background without awaiting
+                    fetchWordData(nextWord).catch(() => {});
+                }
+            }
+        }
+
         // Device Detection for iPhone 13 Mini optimizations
         function detectDevice() {
             const width = window.screen.width;
@@ -2710,6 +2722,9 @@
             
             // Allow swipes now that data is loaded
             isDataLoading = false;
+
+            // Prefetch next word for smoother experience
+            prefetchNextWord();
             
             // Highlight the word in the example
             const highlightedExample = highlightWordInExample(data.example, word);
