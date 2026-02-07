@@ -90,19 +90,27 @@ Format as JSON: {"definition": "...", "example": "..."}`;
 
         let response;
         try {
-            // Use OpenAI Responses API with gpt-5-nano
-            response = await fetch('https://api.openai.com/v1/responses', {
+            // Use OpenAI Chat Completions API with gpt-5-mini
+            response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-5-nano',
-                    instructions: instructions,
-                    input: userPrompt,
-                    store: false,
-                    max_output_tokens: 150
+                    model: 'gpt-5-mini-2025-08-07',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: instructions
+                        },
+                        {
+                            role: 'user',
+                            content: userPrompt
+                        }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 150
                 })
             });
         } catch (fetchError) {
@@ -139,20 +147,8 @@ Format as JSON: {"definition": "...", "example": "..."}`;
             };
         }
         
-        // Extract output_text from Responses API format
-        let content = '';
-        if (data.output && Array.isArray(data.output)) {
-            for (const item of data.output) {
-                if (item.type === 'message' && item.content && Array.isArray(item.content)) {
-                    for (const contentItem of item.content) {
-                        if (contentItem.type === 'output_text') {
-                            content = contentItem.text;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        // Extract content from Chat Completions API format
+        const content = data.choices?.[0]?.message?.content || '';
         
         if (!content) {
             console.error('Empty content. Response:', JSON.stringify(data).substring(0, 500));
