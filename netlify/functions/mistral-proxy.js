@@ -1,6 +1,10 @@
 // Netlify Function to proxy OpenAI API requests
 // This keeps your API key secure on the server side
 
+// Simple in-memory cache (resets on function cold start)
+const cache = new Map();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
 exports.handler = async (event, context) => {
     // Enable CORS
     const headers = {
@@ -38,6 +42,18 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // Check cache first
+        const cacheKey = `${word}:${linkingWord || 'default'}`;
+        const cached = cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+            console.log('Cache hit for word:', word);
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(cached.data)
+            };
+        }
+
         // Get API key from environment variable (set in Netlify dashboard)
         const apiKey = process.env.OPENAI_API_KEY;
         
@@ -70,11 +86,12 @@ ${linkingWordsPrompt ? 'Available linking words: ' + linkingWordsPrompt + '.' : 
 Format as JSON: {"definition": "...", "example": "..."}`;
 
         console.log('Sending request to OpenAI for word:', word);
+        const startTime = Date.now();
 
         let response;
         try {
             // Use OpenAI Responses API with gpt-5-nano
-            // Note: Responses API uses "instructions" for system prompts and "input" for user prompts
+            // text.verbosity: "low" for faster, more concise responses
             response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
@@ -85,7 +102,11 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                     model: 'gpt-5-nano',
                     instructions: instructions,
                     input: userPrompt,
-                    store: true
+                    store: false,
+                    max_output_tokens: 150,
+                    text: {
+                        verbosity: 'low'
+                    }
                 })
             });
         } catch (fetchError) {
@@ -98,8 +119,8 @@ Format as JSON: {"definition": "...", "example": "..."}`;
         }
 
         const responseText = await response.text();
-        console.log('OpenAI response status:', response.status);
-        console.log('OpenAI response body:', responseText.substring(0, 500));
+        const duration = Date.now() - startTime;
+        console.log(`OpenAI response received in ${duration}ms, status:`, response.status);
 
         if (!response.ok) {
             console.error('OpenAI API error:', response.status, responseText);
@@ -123,7 +144,6 @@ Format as JSON: {"definition": "...", "example": "..."}`;
         }
         
         // Extract output_text from Responses API format
-        // The Responses API returns output in data.output array with text content
         let content = '';
         if (data.output && Array.isArray(data.output)) {
             for (const item of data.output) {
@@ -141,6 +161,12 @@ Format as JSON: {"definition": "...", "example": "..."}`;
         const transformedData = {
             output_text: content
         };
+        
+        // Store in cache
+        cache.set(cacheKey, {
+            data: transformedData,
+            timestamp: Date.now()
+        });
         
         console.log('Transformed data:', JSON.stringify(transformedData).substring(0, 200));
         
