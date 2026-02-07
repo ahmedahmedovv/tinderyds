@@ -2601,21 +2601,6 @@
             return fallback;
         }
 
-        // Prefetch next N cards in the background
-        function prefetchUpcomingCards() {
-            const prefetchCount = 5; // Prefetch next 5 cards
-            for (let i = 1; i <= prefetchCount; i++) {
-                const nextIndex = currentIndex + i;
-                if (nextIndex < currentCards.length) {
-                    const nextWord = currentCards[nextIndex];
-                    if (!wordCache[nextWord] && !prefetchQueue.has(nextWord)) {
-                        // Fetch in background without awaiting
-                        fetchWordData(nextWord).catch(() => {});
-                    }
-                }
-            }
-        }
-
         // Device Detection for iPhone 13 Mini optimizations
         function detectDevice() {
             const width = window.screen.width;
@@ -2686,15 +2671,7 @@
             currentCards = sessionWords;
             currentIndex = 0;
 
-            // Pre-fetch first 2 cards immediately (before showing anything)
-            for (let i = 0; i < Math.min(2, sessionWords.length); i++) {
-                fetchWordData(sessionWords[i]);
-            }
-
             await renderCard();
-            
-            // Start prefetching upcoming cards immediately
-            prefetchUpcomingCards();
         }
 
         async function renderCard() {
@@ -2759,8 +2736,7 @@
                 `;
             }
 
-            // Pre-fetch upcoming cards
-            prefetchUpcomingCards();
+
         }
 
         function enableSwipe() {
