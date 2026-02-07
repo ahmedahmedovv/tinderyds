@@ -66,7 +66,7 @@ exports.handler = async (event, context) => {
             };
         }
 
-        const instructions = 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.';
+        const systemPrompt = 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.';
 
         const userPrompt = `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
 
@@ -90,23 +90,27 @@ Format as JSON: {"definition": "...", "example": "..."}`;
 
         let response;
         try {
-            // Use OpenAI Responses API with gpt-5-nano
-            // text.verbosity: "low" for faster, more concise responses
-            response = await fetch('https://api.openai.com/v1/responses', {
+            // Use OpenAI Chat Completions API with gpt-4o-mini (faster than Responses API)
+            response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-5-nano',
-                    instructions: instructions,
-                    input: userPrompt,
-                    store: false,
-                    max_output_tokens: 150,
-                    text: {
-                        verbosity: 'low'
-                    }
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: systemPrompt
+                        },
+                        {
+                            role: 'user',
+                            content: userPrompt
+                        }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 150
                 })
             });
         } catch (fetchError) {
@@ -143,20 +147,8 @@ Format as JSON: {"definition": "...", "example": "..."}`;
             };
         }
         
-        // Extract output_text from Responses API format
-        let content = '';
-        if (data.output && Array.isArray(data.output)) {
-            for (const item of data.output) {
-                if (item.type === 'message' && item.content && Array.isArray(item.content)) {
-                    for (const contentItem of item.content) {
-                        if (contentItem.type === 'output_text') {
-                            content = contentItem.text;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        // Extract content from Chat Completions API format
+        const content = data.choices?.[0]?.message?.content || '';
         
         const transformedData = {
             output_text: content
