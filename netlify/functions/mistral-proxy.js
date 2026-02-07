@@ -147,8 +147,15 @@ Format as JSON: {"definition": "...", "example": "..."}`;
             };
         }
         
+        // Log full response structure for debugging
+        console.log('Full response:', JSON.stringify(data, null, 2).substring(0, 1000));
+        
         // Extract content from Chat Completions API format
         const content = data.choices?.[0]?.message?.content || '';
+        
+        if (!content) {
+            console.error('Empty content. choices:', JSON.stringify(data.choices));
+        }
         
         const transformedData = {
             output_text: content
