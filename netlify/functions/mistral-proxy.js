@@ -64,20 +64,20 @@ exports.handler = async (event, context) => {
                     },
                     {
                         role: 'user',
-                        content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and TWO connected academic example sentences (max 35 words total) that USE "${word}".
+                        content: `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
 
-LINKING WORD ASSIGNMENT: Use "${linkingWord || 'however'}" to connect your two sentences.
+CRITICAL INSTRUCTION: 
+- Create a SINGLE coherent academic sentence (max 25 words) that naturally incorporates BOTH words
+- The sentence must demonstrate the logical function of the linking word in relation to "${word}"
+- If the linking word shows CONTRAST (however, nevertheless, although) - show opposition or unexpected relationship
+- If the linking word shows ADDITION (furthermore, moreover, in addition) - add related information
+- If the linking word shows CAUSE/EFFECT (therefore, consequently, thus) - show a result or consequence
+- If the linking word shows SEQUENCE (subsequently, eventually, initially) - show time progression
+- If the linking word shows EXAMPLE (for example, for instance) - illustrate with a specific case
 
-CRITICAL INSTRUCTION: Analyze the MEANING of "${word}" and the LOGICAL FUNCTION of the assigned linking word together. Create sentences where:
-1. The linking word creates a NATURAL logical connection based on the vocabulary word's meaning
-2. If the linking word shows CONTRAST (however, nevertheless) - show opposition related to the word
-3. If the linking word shows ADDITION (furthermore, moreover) - add supporting information
-4. If the linking word shows CAUSE/EFFECT (therefore, consequently) - show results or consequences
-5. If the linking word shows SEQUENCE (subsequently, eventually) - show time progression
+The sentence must be grammatically correct and the linking word must connect ideas WITHIN the same sentence as "${word}".
 
-The two sentences must be COHERENT and the linking word must make logical sense with "${word}".
-
-${linkingWordsPrompt ? 'Available linking categories: ' + linkingWordsPrompt + '.' : ''}
+${linkingWordsPrompt ? 'Available linking words: ' + linkingWordsPrompt + '.' : ''}
 
 Format as JSON: {"definition": "...", "example": "..."}`
                     }

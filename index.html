@@ -2695,16 +2695,17 @@
             return result;
         }
 
-        // Generate better fallback data based on word patterns
+        // Generate better fallback data based on word patterns with linking words
         function generateFallbackData(word) {
             const lowerWord = word.toLowerCase();
+            const linkingWord = suggestLinkingWord();
             
-            // Pattern-based fallbacks for common word types
+            // Pattern-based fallbacks for common word types - all include linking word
             if (lowerWord.endsWith('ly')) {
                 // Adverbs
                 return {
                     definition: `In a manner that is ${lowerWord.replace('ly', '')}. Used to modify verbs, adjectives, or other adverbs.`,
-                    example: `The student ${lowerWord} completed the assignment before the deadline.`
+                    example: `The student ${lowerWord} completed the assignment; ${linkingWord}, the professor expected even more detail.`
                 };
             }
             
@@ -2712,7 +2713,7 @@
                 // Nouns
                 return {
                     definition: `The act, process, or result of ${lowerWord.replace(/(tion|sion|ment)$/, 'ting')}. A concept or state.`,
-                    example: `The ${lowerWord} of this theory has been widely debated in academic circles.`
+                    example: `The ${lowerWord} of this theory is significant; ${linkingWord}, many scholars remain skeptical.`
                 };
             }
             
@@ -2720,7 +2721,7 @@
                 // Gerunds/present participles
                 return {
                     definition: `The process or action of ${lowerWord}. An ongoing activity or state.`,
-                    example: `${word} requires careful consideration of all relevant factors.`
+                    example: `Although ${lowerWord} requires effort, ${linkingWord} the results are worth the investment.`
                 };
             }
             
@@ -2729,7 +2730,7 @@
                 const rootWord = lowerWord.replace(/^(un|in|dis)/, '');
                 return {
                     definition: `Not ${rootWord}; the opposite or absence of ${rootWord}.`,
-                    example: `The results were ${lowerWord}, which surprised the researchers.`
+                    example: `The findings were ${lowerWord}; ${linkingWord}, subsequent studies have challenged this conclusion.`
                 };
             }
             
@@ -2737,14 +2738,14 @@
                 // Phrasal verbs or multi-word expressions
                 return {
                     definition: `An expression meaning to perform the action described by ${word}. Commonly used in formal contexts.`,
-                    example: `Researchers must ${lowerWord} when analyzing complex data sets.`
+                    example: `Researchers must ${lowerWord} to succeed; ${linkingWord} many struggle to implement this effectively.`
                 };
             }
             
-            // Default fallback with better context
+            // Default fallback with linking word integrated
             return {
                 definition: `Relating to or characterized by ${lowerWord}; an important academic vocabulary term.`,
-                example: `The professor emphasized that understanding "${word}" is essential for academic success.`
+                example: `Understanding "${word}" is essential for academic success; ${linkingWord}, many students overlook its importance.`
             };
         }
 
