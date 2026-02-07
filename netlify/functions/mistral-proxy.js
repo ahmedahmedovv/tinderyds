@@ -80,7 +80,8 @@ Format as JSON: {"definition": "...", "example": "..."}`;
                 body: JSON.stringify({
                     model: 'gpt-5-nano',
                     input: prompt,
-                    store: true
+                    store: true,
+                    max_output_tokens: 500
                 })
             });
         } catch (fetchError) {
