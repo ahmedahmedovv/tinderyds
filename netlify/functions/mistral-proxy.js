@@ -66,7 +66,7 @@ exports.handler = async (event, context) => {
             };
         }
 
-        const systemPrompt = 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.';
+        const instructions = 'You are a helpful English vocabulary tutor. Provide clear, concise definitions and natural example sentences. Respond ONLY in JSON format.';
 
         const userPrompt = `Provide a BRIEF academic definition (1 concise sentence, max 20 words) and ONE academic example sentence that USES BOTH "${word}" AND the linking word "${linkingWord || 'however'}" in the SAME sentence.
 
@@ -90,27 +90,19 @@ Format as JSON: {"definition": "...", "example": "..."}`;
 
         let response;
         try {
-            // Use OpenAI Chat Completions API with gpt-4o-mini (faster than Responses API)
-            response = await fetch('https://api.openai.com/v1/chat/completions', {
+            // Use OpenAI Responses API with gpt-5-nano
+            response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: systemPrompt
-                        },
-                        {
-                            role: 'user',
-                            content: userPrompt
-                        }
-                    ],
-                    temperature: 0.3,
-                    max_tokens: 150
+                    model: 'gpt-5-nano',
+                    instructions: instructions,
+                    input: userPrompt,
+                    store: false,
+                    max_output_tokens: 150
                 })
             });
         } catch (fetchError) {
@@ -147,26 +139,23 @@ Format as JSON: {"definition": "...", "example": "..."}`;
             };
         }
         
-        // Log full response structure for debugging
-        console.log('Full response:', JSON.stringify(data, null, 2).substring(0, 1000));
-        
-        // Extract content from Chat Completions API format
-        const choice = data.choices?.[0];
-        const message = choice?.message;
-        const content = message?.content || '';
-        const finishReason = choice?.finish_reason;
-        const refusal = message?.refusal;
-        
-        if (!content) {
-            console.error('Empty content. finish_reason:', finishReason);
-            console.error('Refusal:', refusal);
-            console.error('Message:', JSON.stringify(message));
-            console.error('Full response:', JSON.stringify(data));
+        // Extract output_text from Responses API format
+        let content = '';
+        if (data.output && Array.isArray(data.output)) {
+            for (const item of data.output) {
+                if (item.type === 'message' && item.content && Array.isArray(item.content)) {
+                    for (const contentItem of item.content) {
+                        if (contentItem.type === 'output_text') {
+                            content = contentItem.text;
+                            break;
+                        }
+                    }
+                }
+            }
         }
         
-        // Handle refusal case
-        if (refusal) {
-            console.error('Model refused to generate content:', refusal);
+        if (!content) {
+            console.error('Empty content. Response:', JSON.stringify(data).substring(0, 500));
         }
         
         const transformedData = {
